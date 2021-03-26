@@ -846,7 +846,7 @@ function evalWDA () {
     else {
         for (let i = 0; i < rows; i++) {
             if (payoffs[i][a][1] < payoffs[i][b][1]) return false;
-            if (payoffs[a][j][0] > payoffs[b][j][0]) diff = true;
+            if (payoffs[i][a][0] > payoffs[i][b][0]) diff = true;
         }
     }
     return diff;
