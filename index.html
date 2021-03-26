@@ -1,0 +1,167 @@
+<html>
+    <head>
+        <link rel="stylesheet" href="style.css">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+        <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+        <script type="text/javascript" id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+        <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    </head
+    <body>
+        <div id="title" class="title">
+            <a id="titleBtn" href="#" onclick="home()">Applied Game Theory</a>
+        </div>
+
+        <div id='navbar' class="navbar"> 
+            <div class="dropdown">
+                <button class="dropbtn">
+                    <span class="mobile">
+                        <span class="material-icons md-30">explore</span>
+                    </span>
+                    <span class="desktop">
+                        Exercise type
+                        <i class="fa fa-caret-down"></i>
+                    </span>
+                </button>
+                <div class="dropdown-content">
+                    <a href="#" onclick="init('WDA')"><span class="text">Weakly dominated actions</span><span id='navWDA' class="material-icons icon"></span></a> 
+                    <a href="#" onclick="init('NE')"><span class="text">Nash equilibrium</span><span id='navNE' class="material-icons icon"></span></a>
+                    <a href="#" onclick="init('Cou')"><span class="text">Cournot competition</span><span id='navCou' class="material-icons icon"></span></a>
+                    <a href="#" onclick="init('Mix')"><span class="text">Mixed-strategy Nash equilibrium</span><span id='navMix' class="material-icons icon"></span></a>
+                    <a href="#" onclick="init('SPNE')"><span class="text">Subgame-perfect Nash equilibrium</span><span id='navSPNE' class="material-icons icon"></span></a>
+                    <a href="#" onclick="init('Stack')"><span class="text">Stackelberg competition</span><span id='navStack' class="material-icons icon"></span></a>
+                    <a href="#" onclick="init('Signal')"><span class="text">Signaling games</span><span id='navSign' class="material-icons icon"></span></a>
+                    <a href="#" onclick="init('Core')"><span class="text">The core</span><span id='navCore' class="material-icons icon"></span></a>
+                    <a href="#" onclick="init('Shap')"><span class="text">The Shapley value</span><span id='navShap' class="material-icons icon"></span></a>
+                </div>
+            </div> 
+            <div class="dropdown">
+                <button class="dropbtn">
+                    <span class="mobile">
+                        <span class="material-icons md-light md-30">settings</span>
+                    </span>
+                    <span class="desktop">
+                        Customize
+                        <i class="fa fa-caret-down"></i>
+                    </span>
+                </button>
+                <div id="paramList" class="dropdown-content">
+                </div>
+            </div>
+            <div class="dropdown">
+                <a href="#" onclick="init(exercise)">
+                    <span class="mobile">
+                        <span class="material-icons md-light md-30">
+                            add_circle_outline
+                        </span>
+                    </span>
+                    <span class="desktop">
+                        New problem
+                    </span>
+                </a>
+            </div>
+            <div class="dropdown">
+                <a href="#" onclick="evaluateAnswer()">
+                    <span class="mobile">
+                        <span class="material-icons md-light md-30">
+                            task_alt
+                        </span>
+                    </span>
+                    <span class="desktop">
+                        Submit answer
+                    </span>
+                </a>
+            </div>
+        </div>  
+    
+        <div> 
+            <div id='output_right' class="output hide">
+                You're right!           
+            </div>
+            <div id='output_wrong' class="output wrong hide">
+                No, try again.
+            </div>
+        </div>
+
+		<div id='feedbackFormDiv' class='feedbackFormDiv hide'>
+			<iframe id='feedbackForm' class="feedbackForm" src="https://docs.google.com/forms/d/e/1FAIpQLSdyum4o7Jj7aVY2A8TFQrKUIvxLVu0lcj8O72KYG9IH71NmpQ/viewform?embedded=true">Loading…</iframe>
+			<span id='closeForm' class='closeForm hide'>Close feedback form</span>
+		</div>
+    
+        <div id="intro" class="main">
+            <div class="heading welcome">
+                Welcome to the exercise website!
+            </div>
+            <div>
+                Here you'll get endless practice solving some of the games covered in the course.
+                Answers are automatically checked: we won't tell you the correct answer, but we will tell you whether <em>your</em> answer is correct.
+                To get started, choose "Weakly dominated actions" under "Exercise type" (left-most button on mobile devices) in the menu above.
+                Have fun!
+            </div>
+            <div class="heading space">
+                Need help or wondering about something?
+            </div>
+            <div>
+                <button type="button" class="collapsible">
+                    Some exercise types seem locked?
+                </button>
+                <div class="content">
+                    <p>That's right! Submit three correct answers in a row to exercises of your most recently unlocked task type to unlock the next type.</p>
+                </div>
+                <button type="button" class="collapsible">
+                    It's too easy!
+                </button>
+                <div class="content">
+                    <p>Customize the game, say by increasing the number of players or actions, for a bigger challenge.</p>
+                </div>
+                <button type="button" class="collapsible">
+                    There's too little variety.
+                </button>
+                <div class="content">
+                    <p>Some exercises types lend themselves better to this format than others. But what's here is hopefully still better than nothing!</p>
+                </div>
+                <button type="button" class="collapsible">
+                    Something isn't working as expected.
+                </button>
+                <div class="content">
+                    <p>Make sure to give complete answers. Use fractions to avoid rounding errors (e.g., 1/3 instead of 0.33). Still doesn't work? Let us know by clicking "Give feedback" next to the exercise heading.</p>
+                </div>
+                <button type="button" class="collapsible">
+                    Will there be exercises on ..
+                </button>
+                <div class="content">
+                    <p>More exercise types may be added. If there's something in particular you're missing, send an email to jg at ifro dot ku dot dk.</p>
+                </div>
+                <button type="button" class="collapsible">
+					The website works poorly on ..
+                </button>
+                <div class="content">
+                    <p>You're more than welcome to submit feedback to jg at ifro dot ku dot dk.</p>
+                </div>
+            </div> 
+        </div>
+        <div id="main" class="main hide">
+            <div class="heading">
+				<span id="header" class="heading"></span>
+				<a href="#" id='feedback' class='feedback' onclick="feedback()">Give feedback</a>
+            </div>
+            <div id="description" class="ital"> 
+            </div>
+            <div id="instance" class="space">
+            </div>
+            <div id="answerHeader" class="heading space">
+                Answer
+            </div>
+            <div id="answer">
+            </div>
+            <div id="moreHeader" class="heading space">
+                Digging deeper..
+            </div>
+            <div id="more">
+            </div>
+        </div>
+    
+    <script src="script.js"></script>
+    </body>
+
+</html>
