@@ -878,12 +878,12 @@ function evalCou() {
     var totQ = sum(q);
 
     for (let f = 0; f < firms; f++) {
-        let br = (demand['a'] - demand['b'] * (totQ - q[f]) - costs[f]) / (2 * (demand['b'] + costs['b']));
+		let br = (demand['a'] - demand['b'] * (totQ - q[f]) - costs[f]['a']) / (2 * (demand['b'] - costs[f]['b']));
         if (!isClose(q[f], br, .1)) return false;
     }
 
     var price = demand['a'] - demand['b'] * totQ;
-    if (!isClose($('price'), price)) return false;
+    if (!isClose(fracToDec($('price').value), price)) return false;
     return true;
 }
 
@@ -990,7 +990,7 @@ function evalStack() {
     }
 
     var price = demand['a'] - demand['b'] * totQ;
-    if (!isClose($('price'), price)) return false;
+    if (!isClose(fracToDec($('price').value), price)) return false;
     return true;
 }
 
