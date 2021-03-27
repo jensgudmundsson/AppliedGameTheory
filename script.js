@@ -300,7 +300,7 @@ function evaluateAnswer() {
         if (res) streak += 1;
         else streak = 0;
     }
-    if (armed && streak === 3) {
+    if (armed && streak === 1) {
         unlock += 1;
         setCookie('unlock', unlock);
         streak = 0;
