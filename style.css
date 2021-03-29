@@ -28,8 +28,14 @@ body {
 }
 
 .menu-item:hover .menu-item-content {
+	-webkit-transform: perspective(400) rotate3d(0,0,0,0deg);
+	-moz-transform: perspective(400) rotate3d(0,0,0,0deg);
+	-ms-transform: perspective(400) rotate3d(0,0,0,0deg);
+	-o-transform: perspective(400) rotate3d(0,0,0,0deg);
+	transform: perspective(400) rotate3d(0,0,0,0deg);
+
 	max-height: 1000px;
-    transition: max-height .4s ease-in-out; 
+	visibility: visible;
 }
 
 .menu-item-content {
@@ -40,9 +46,31 @@ body {
 	min-width: 350px;
 	box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
 	z-index: 1;
-	max-height: 0;
-	overflow: hidden;
-    transition: all .2s ease-in-out; 
+
+	-webkit-transition: transform 250ms ease;
+    -moz-transition: transform 250ms ease;
+    -ms-transition: transform 250ms ease;
+    -o-transition: transform 250ms ease;
+    transition: transform 250ms ease;
+
+	-webkit-transform: perspective(400) rotate3d(1,0,0,-90deg);
+	-moz-transform: perspective(400) rotate3d(1,0,0,-90deg);
+	-ms-transform: perspective(400) rotate3d(1,0,0,-90deg);
+	-o-transform: perspective(400) rotate3d(1,0,0,-90deg);
+	transform: perspective(400) rotate3d(1,0,0,-90deg);
+
+	-webkit-transform-origin: 50% 0;
+	-moz-transform-origin: 50% 0;
+	-ms-transform-origin: 50% 0;
+	-o-transform-origin: 50% 0;
+	transform-origin: 50% 0;
+}
+
+@supports (-moz-appearance:none) {
+	.menu-item-content {
+		max-height: 0;
+		visibility: hidden;
+	}
 }
 
 .menu-item-content a {
@@ -51,7 +79,6 @@ body {
 	display: block;
 	text-align: left;
 	height: 57px;
-    transition: background-color .3s ease-in-out; 
 }
 
 .menu-item-content a .text {

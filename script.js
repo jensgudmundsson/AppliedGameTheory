@@ -43,7 +43,6 @@ const sum = arr => arr.reduce((a, b) => a + b);
 const toText = x => {
     if (x === 2) return 'two';
     if (x === 3) return 'three';
-    if (x === 4) return 'four';
 }
 
 function options (x) {
@@ -121,13 +120,13 @@ function fetchCookies() {
     
     progress = getCookie('progress');
     if (!progress) {
-        progress = '000000000';
+        progress = '0000000000';
         setCookie('progress', progress);
     }
 }
 
 function setIcons () {
-    ['navWDA', 'navNE', 'navCou', 'navMix', 'navSPNE', 'navStack', 'navSign', 'navCore', 'navShap'].forEach((x,c) => {
+    ['navWDA', 'navNE', 'navCou', 'navMix', 'navSPNE', 'navStack', 'navImperf', 'navSign', 'navCore', 'navShap'].forEach((x,c) => {
         if (c <= unlock) {
             $(x).classList.remove('lock');
             $(x).innerText = '';
@@ -194,7 +193,7 @@ function updateTexts () {
     $('answer').innerHTML = answers[exercise]();
     $('more').innerHTML = more[exercise];
 
-    if (exercise != 'Signal' && exercise != 'SPNE') $('instance').innerHTML = inst;
+    if (exercise != 'SPNE' && exercise != 'Imperf' && exercise != 'Signal') $('instance').innerHTML = inst;
     
     MathJax.typeset();
 }
@@ -219,9 +218,10 @@ function init(ex) {
         case 'Mix': 	temp = 3; break;
         case 'SPNE': 	temp = 4; break;
         case 'Stack': 	temp = 5; break;
-        case 'Signal':	temp = 6; break;
-        case 'Core': 	temp = 7; break;
-        case 'Shap': 	temp = 8; break;
+        case 'Imperf': 	temp = 6; break;
+        case 'Signal':	temp = 7; break;
+        case 'Core': 	temp = 8; break;
+        case 'Shap': 	temp = 9; break;
         default: return;
     }
 
@@ -247,6 +247,9 @@ function init(ex) {
         case 'Stack':
             generateStack();
             break;  
+        case 'Imperf':
+            generateImperf();
+			break;
         case 'Signal':
             generateSignal();
 			break;
@@ -279,6 +282,9 @@ function evaluateAnswer() {
             break;
         case 'Stack':
             res = evalStack();
+            break;
+        case 'Imperf':
+            res = evalImperf();
             break;
         case 'Signal':
             res = evalSignal();
@@ -386,6 +392,7 @@ const params = {
 };
 params['NE'] = params['WDA'];
 params['Mix'] = params['WDA'];
+params['Imperf'] = params['SPNE'];
 params['Signal'] = params['SPNE'];
 params['Shap'] = params['Core'];
 
@@ -396,6 +403,7 @@ const headers = {
     'Mix': "Mixed-strategy Nash equilibrium",
 	'SPNE': "Subgame-perfect Nash equilibrium",
     'Stack': "Stackelberg competition",
+    'Imperf': "Imperfect information",
     'Signal': "Signaling games",
 	'Core': "The core",
 	'Shap': "The Shapley value",
@@ -405,9 +413,10 @@ const descriptions = {
     'WDA': "Find weakly dominated actions in the game below (if such exist). If you're sure there isn't one, move on to a new problem.",
     'NE': "Find a pure-strategy Nash equilibrium in the game below below (if one exists). If you're sure there isn't one, move on to a new problem.",
     'Cou': "Find the Cournot equilibrium in the game below. Use fractions to avoid rounding errors (e.g., 1/3 instead of 0.33).",
-    'Mix': "Find a mixed-strategy Nash equilibrium in the game below. Remember that pure strategies are a special case of mixed strategies! Use fractions to avoid rounding errors (e.g., 1/3 instead of 0.33).",
+    'Mix': "Find a mixed-strategy Nash equilibrium in the game below. Remember that pure strategies are a special case of mixed strategies! Set the probability to 0 for unused actions (or leave empty). Use fractions to avoid rounding errors (e.g., 1/3 instead of 0.33).",
 	'SPNE': "Find a subgame-perfect Nash equilibrium in the game below. Remember: a strategy specifies an action at every decision node for the player.",
     'Stack': "Find the Stackelberg equilibrium in the game below. Use fractions to avoid rounding errors (e.g., 1/3 instead of 0.33).",
+	'Imperf': "Find a subgame-perfect Nash equilibrium in the game below. Remember: a strategy specifies an action at every information set for the player.",
     'Signal': "Find a pure-strategy perfect Bayesian equilibrium in the signaling game below.",
 	'Core': "Find a core allocation in the cost-sharing game below (if one exists). If you're sure there isn't one, move on to a new problem.",
 	'Shap': "Find the Shapley value of the cost-sharing game below.",
@@ -430,6 +439,8 @@ const answers = {
     'Mix': () => "Row mixes with probabilities " + inputs('r') + ". Column mixes with probabilities " + inputs('c') + ".",
 
 	'SPNE': () => 'Player 1 plays <select id="SPNE_IO"><option disabled selected></option><option>In</option><option>Out</option></select>, <select id="SPNE_A"><option disabled selected></option><option>1</option><option>2</option></select> after A, and <select id="SPNE_B"><option disabled selected></option><option>3</option><option>4</option></select> after B. Player 2 plays <select id="SPNE_IN"><option disabled selected></option><option>A</option><option>B</option></select>.',
+
+	'Imperf': () => 'Player 1 plays <select id="Imp_IO"><option disabled selected></option><option>In</option><option>Out</option></select> and <select id="Imp_1"><option disabled selected></option><option>1</option><option>2</option></select>. Player 2 plays <select id="Imp_2"><option disabled selected></option><option>A</option><option>B</option></select>.',
 
     'Signal': () => {
         function optList (arr) {
@@ -474,12 +485,14 @@ const more = {
     'NE': "Are there more than one equilibrium? Is the equilibrium strict or weak? If there are several, does one of them stand out?",
     'Cou': "What about profits? What if the firms chose to collude? (What would you use as cost function?) What's the consumer surplus?",
     'Mix': "What's the interpretation of this equilibrium?",
-	'SPNE': "Can you find a Nash equilibrium that isn't subgame perfect? This exercise is limited to a particular structure on the game tree, make sure you understand the underlying ideas so you can solve other ones as well.",
+	'SPNE': "How many subgames are there? Can you find a Nash equilibrium that isn't subgame perfect? This exercise is limited to a particular structure on the game tree, make sure you understand the underlying ideas so you can solve other ones as well.",
     'Stack': "What about profits? Compare to the Cournot model: how much would firm 1 be willing to pay (in the Cournot setting) to get a first-mover advantage?",
     'Signal': "Is the equilibrium pooling or separating? Does it work for a larger set of beliefs? Can you find an equilibrium that involves mixed strategies?",
 	'Core': "It's rare that there's a unique core allocation. If there are several here, can you find an expression for the core as a whole? What properties does the game satisfy? What difference would it make when looking at surplus-sharing games instead?",
 	'Shap': "Here, is the Shapley value in the game's core? What difference would it make when looking at surplus-sharing games instead?",
 };
+
+more['Imperf'] = more['SPNE'];
 
 // EXERCISE FUNCTIONS
 
@@ -659,6 +672,121 @@ function generateStack () {
     if (firms === 3) inst += " Finally, firm 3 observes both other quantities before making its choice.";
 }
 
+// Imperfect information games
+
+function generateImperf () {
+
+	function genPair () {
+		return Array.from({ length: 2}, () =>
+			Math.floor(Math.random() * 10)
+			)
+	}
+
+    extPayoffs = {
+		'Out': genPair(),
+		'In': { 
+			'A': { '1': genPair(), '2': genPair() },
+			'B': { '1': genPair(), '2': genPair() },
+		}
+	}
+
+    var w = 320;
+    var h = 290;
+    var d = 100;
+
+    var canv = document.createElement('canvas');
+    canv.width = w;
+    canv.height = h;
+    
+    var ctx = canv.getContext('2d');
+    ctx.font = '18px Arial, Helvetica, sans-serif';
+    
+    var radius = 3;
+	var top = 30;
+    var sep = 8; // Text shift
+    var sep2 = 16; // Extra shift
+    var angle = Math.PI / 3;
+    var angle2 = Math.PI / 6;
+    var xleaf = Math.sin(angle);
+    var yleaf = Math.cos(angle);
+    var xleaf2 = Math.sin(angle2);
+    var yleaf2 = Math.cos(angle2);
+
+    ctx.arc(w/2, top, radius, 0, 2 * Math.PI);
+    ctx.closePath();
+    ctx.arc(w/2, top + d, radius, 0, 2 * Math.PI);
+    ctx.closePath();
+    ctx.arc(w/2 - xleaf * d, top + d + yleaf * d, radius, 0, 2 * Math.PI);
+    ctx.closePath();
+    ctx.arc(w/2 + xleaf * d, top + d + yleaf * d, radius, 0, 2 * Math.PI);
+    ctx.closePath();
+	ctx.fill();
+
+    ctx.beginPath();
+    ctx.moveTo(w/2, top);
+    ctx.lineTo(w/2 + d, top);
+    ctx.moveTo(w/2, top);
+    ctx.lineTo(w/2, top + d);
+    ctx.lineTo(w/2 + xleaf * d, top + d + yleaf * d);
+    ctx.moveTo(w/2, top + d);
+    ctx.lineTo(w/2 - xleaf * d, top + d + yleaf * d);
+    ctx.lineTo(w/2 - xleaf * d - xleaf2 * d, top + d + yleaf * d + yleaf2 * d);
+    ctx.moveTo(w/2 - xleaf * d, top + d + yleaf * d);
+    ctx.lineTo(w/2 - xleaf * d + xleaf2 * d, top + d + yleaf * d + yleaf2 * d);
+    ctx.moveTo(w/2 + xleaf * d, top + d + yleaf * d);
+    ctx.lineTo(w/2 + xleaf * d - xleaf2 * d, top + d + yleaf * d + yleaf2 * d);
+    ctx.moveTo(w/2 + xleaf * d, top + d + yleaf * d);
+    ctx.lineTo(w/2 + xleaf * d + xleaf2 * d, top + d + yleaf * d + yleaf2 * d);
+    ctx.stroke();
+
+    ctx.textAlign = 'end';
+    ctx.textBaseline = 'bottom';
+    ctx.fillText('Player 1', w/2 - sep, top);
+    ctx.fillText('Player 2', w/2 - sep, top + d);
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+	ctx.fillText('Player 1', w/2, top + d + yleaf * d);
+	ctx.textAlign = 'end';
+    ctx.textBaseline = 'bottom';
+	ctx.fillText('In', w/2 - sep, top + d/2);
+	ctx.textAlign = 'center';
+	ctx.fillText('Out', w/2 + d/2, top);
+	ctx.textBaseline = 'middle';
+	ctx.fillText('A', w/2 - xleaf * d/2 - sep, top + d + yleaf * d / 2 - sep);
+	ctx.fillText('B', w/2 + xleaf * d/2 + sep, top + d + yleaf * d / 2 - sep);
+	ctx.fillText('1', w/2 - xleaf * d - xleaf2 * d / 2 - sep, top + d + yleaf * d + yleaf2 * d / 2 - sep);
+	ctx.fillText('2', w/2 - xleaf * d + xleaf2 * d / 2 + sep, top + d + yleaf * d + yleaf2 * d / 2 - sep);
+	ctx.fillText('1', w/2 + xleaf * d - xleaf2 * d / 2 - sep, top + d + yleaf * d + yleaf2 * d / 2 - sep);
+	ctx.fillText('2', w/2 + xleaf * d + xleaf2 * d / 2 + sep, top + d + yleaf * d + yleaf2 * d / 2 - sep);
+
+    [-d,d].forEach(x => {
+        ctx.beginPath();
+        ctx.setLineDash([5, 5]);
+		ctx.moveTo(w/2 - xleaf * d, top + d + yleaf * d + sep2);
+		ctx.arc(w/2 - xleaf * d, top + d + yleaf * d, sep2, Math.PI/2, -Math.PI/2);
+		ctx.lineTo(w/2 + xleaf * d, top + d + yleaf * d - sep2);
+		ctx.arc(w/2 + xleaf * d, top + d + yleaf * d, sep2, -Math.PI/2, Math.PI/2);
+        ctx.closePath();
+        ctx.stroke();
+    });
+
+    const sp = (i,j) => extPayoffs['In'][i][j].join(', ');
+
+	ctx.textAlign = 'start';
+	ctx.fillText(extPayoffs['Out'].join(', '), w/2 + d + sep, top);
+
+	ctx.textAlign = 'center';
+	ctx.textBaseline = 'top';
+	ctx.fillText(sp('A',1), w/2 - xleaf * d - xleaf2 * d, top + d + yleaf * d + yleaf2 * d);
+	ctx.fillText(sp('A',2), w/2 - xleaf * d + xleaf2 * d, top + d + yleaf * d + yleaf2 * d);
+	ctx.fillText(sp('B',1), w/2 + xleaf * d - xleaf2 * d, top + d + yleaf * d + yleaf2 * d);
+	ctx.fillText(sp('B',2), w/2 + xleaf * d + xleaf2 * d, top + d + yleaf * d + yleaf2 * d);
+
+    $('instance').removeChild($('instance').lastChild);
+    $('instance').innerHTML = '';
+    $('instance').appendChild(canv);
+}
+
 // Signaling games
 
 function generateSignal () {
@@ -831,20 +959,17 @@ function evalWDA () {
     var sel1 = $('WDA_1');
     var sel2 = $('WDA_2');
     if (!sel1 || !sel2) {
-        alert("Choose both actions.")
+		console.log('Incomplete answer');
         return false;
     }
     const group = (sel) => sel.options[sel.options.selectedIndex].parentNode.label;
     if (group(sel1) != group(sel2)) {
-        alert("Can't compare between agents.")
+		console.log('Inconsistent answer');
         return false;
     }
     var a = $('WDA_1').value;
     var b = $('WDA_2').value;
-    if (a == b) {
-        alert("Choose two different actions.")
-        return false;
-    }
+    if (a == b) return false;
 	var diff = false;
     if (group(sel1) == 'Row') {
         for (let j = 0; j < cols; j++) {
@@ -865,15 +990,21 @@ function evalNE() {
     var a = $('NE_row').value;
     var b = $('NE_col').value;
     if (!a || !b) {
-        alert("Choose actions for both players.")
+		console.log('Incomplete answer');
         return false;
     }
     var outcome = payoffs[a][b];
     for (let i = 0; i < rows; i++) {
-        if (outcome[0] < payoffs[i][b][0]) return false;
+        if (outcome[0] < payoffs[i][b][0]) {
+			console.log('Deviation by column');
+			return false;
+		}
     }
     for (let j = 0; j < cols; j++) {
-        if (outcome[1] < payoffs[a][j][1]) return false;
+        if (outcome[1] < payoffs[a][j][1]) {
+			console.log('Deviation by row');
+			return false;
+		}
     }
     return true;
 }
@@ -888,11 +1019,17 @@ function evalCou() {
 
     for (let f = 0; f < firms; f++) {
 		let br = (demand['a'] - demand['b'] * (totQ - q[f]) - costs[f]['a']) / (2 * (demand['b'] + costs[f]['b']));
-        if (!isClose(q[f], br, .1)) return false;
+        if (!isClose(q[f], br, .1)) {
+			console.log((f+1) + "isn't playing a best reponse to the others");
+			return false;
+		}
     }
 
     var price = demand['a'] - demand['b'] * totQ;
-    if (!isClose(textInput('price'), price)) return false;
+    if (!isClose(textInput('price'), price)) {
+		console.log('Price is inconsistent with quantities');
+		return false;
+	}
     return true;
 }
 
@@ -908,7 +1045,7 @@ function evalMix() {
         probtotal[1] += pc[j];
     }
     if (!isClose(probtotal[0], 1) || !isClose(probtotal[1], 1)) {
-        alert("Probabilities don't add to one.");
+		console.log("Probabilities don't add to one");
         return false;
     }
     // Expected payoffs under reported strategies
@@ -926,7 +1063,10 @@ function evalMix() {
         for (let j = 0; j < cols; j++) {
             v += pc[j] * payoffs[i][j][0];
         }
-        if (isLarger(v, uRow)) return false;
+        if (isLarger(v, uRow)) {
+			console.log('Deviation by row');
+			return false;
+		}
     }
     // Deviations by col
     for (let j = 0; j < cols; j++) {
@@ -934,7 +1074,10 @@ function evalMix() {
         for (let i = 0; i < rows; i++) {
             v += pr[i] * payoffs[i][j][1];
         }
-        if (isLarger(v, uCol)) return false;
+        if (isLarger(v, uCol)) {
+			console.log('Deviation by column');
+			return false;
+		}
     }
     return true;
 }
@@ -945,32 +1088,50 @@ function evalSPNE() {
 	var sA = $('SPNE_A').value;
 	var sB = $('SPNE_B').value;
 
-	if (!io || !s2 || !sA || !sB) return false;
+	if (!io || !s2 || !sA || !sB) {
+		console.log('Incomplete answer');
+		return false;
+	}
 	var dev, dev2, dev3;
 
 	// Check from the end, deviation by 1 after A
 
 	dev = (sA === '1') ? '2' : '1';
-	if (extPayoffs['In']['A'][dev][0] > extPayoffs['In']['A'][sA][0]) return false;
+	if (extPayoffs['In']['A'][dev][0] > extPayoffs['In']['A'][sA][0]) {
+		console.log('Deviation by 1 after A');
+		return false;
+	}
 
 	// Deviation by 1 after B
 	dev = (sB === '3') ? '4' : '3';
-	if (extPayoffs['In']['B'][dev][0] > extPayoffs['In']['B'][sB][0]) return false;
+	if (extPayoffs['In']['B'][dev][0] > extPayoffs['In']['B'][sB][0]) {
+		console.log('Deviation by 1 after B');
+		return false;
+	}
 
 	// Deviation by 2 after In
 	dev = (s2 === 'A') ? 'B' : 'A';
 	dev2 = (dev === 'A') ? sA : sB;
 	dev3 = (s2 === 'A') ? sA : sB;
 
-	if (extPayoffs['In'][dev][dev2][1] > extPayoffs['In'][s2][dev3][1]) return false;
+	if (extPayoffs['In'][dev][dev2][1] > extPayoffs['In'][s2][dev3][1]) {
+		console.log('Deviation by 2 after In');
+		return false;
+	}
 
 	// Deviation by 1 at the start
 	dev = (s2 === 'A') ? sA : sB;
 	if (io === 'Out') {
-		if (extPayoffs['In'][s2][dev][0] > extPayoffs['Out'][0]) return false;
+		if (extPayoffs['In'][s2][dev][0] > extPayoffs['Out'][0]) {
+			console.log('Deviation by 1 to In');
+			return false;
+		}
 	}
 	else {
-		if (extPayoffs['Out'][0] > extPayoffs['In'][s2][dev][0]) return false;
+		if (extPayoffs['Out'][0] > extPayoffs['In'][s2][dev][0]) {
+			console.log('Deviation by 1 to Out');
+			return false;
+		}
 	}
 	return true;
 }
@@ -994,15 +1155,62 @@ function evalStack() {
         br[2] = (demand['a'] - costs[2]['a']) / (2 * demand['b']) - br[0] / 2 - br[1] / 2;
     }
 
-	console.log(br);
-
     for (let f = 0; f < firms; f++) {
-        if (!isClose(q[f], br[f], .1)) return false;
+        if (!isClose(q[f], br[f], .1)) {
+			console.log((f+1) + "isn't playing a best respons to the others");
+			return false;
+		}
     }
 
     var price = demand['a'] - demand['b'] * totQ;
-    if (!isClose(textInput('price'), price)) return false;
+    if (!isClose(textInput('price'), price)) {
+		console.log('Price is inconsistent with quantities');
+		return false;
+	}
     return true;
+}
+
+function evalImperf() {
+	var io = $('Imp_IO').value;
+	var s1 = $('Imp_1').value;
+	var s2 = $('Imp_2').value;
+
+	if (!io || !s1 || !s2) return false;
+	var dev;
+
+	// Check from the end, deviation by 1 in simultaneous moves
+	dev = (s1 === '1') ? '2' : '1';
+	if (extPayoffs['In'][s2][dev][0] > extPayoffs['In'][s2][s1][0]) {
+		console.log('Deviation by 1 in simultaneous moves');
+		return false;
+	}
+
+	// Deviation by 2 in simultaneous moves
+	dev = (s2 === 'A') ? 'B' : 'A';
+	if (extPayoffs['In'][dev][s1][1] > extPayoffs['In'][s2][s1][1]) {
+		console.log(s1,s2,dev);
+		console.log('Deviation by 2 in simultaneous moves')
+		return false;
+	}
+
+	// Deviation by 1 at the start
+	if (io === 'Out') {
+		if (extPayoffs['In'][s2]['1'][0] > extPayoffs['Out'][0]) {
+			console.log('Deviation by 1 to In, 1');
+			return false;
+		}
+		if (extPayoffs['In'][s2]['2'][0] > extPayoffs['Out'][0]) {
+			console.log('Deviation by 1 to In, 2');
+			return false;
+		}
+	}
+	else {
+		if (extPayoffs['Out'][0] > extPayoffs['In'][s2][s1][0]) {
+			console.log('Deviation by 1 to Out');
+			return false;
+		}
+	}
+	return true;
 }
 
 function evalSignal () {
@@ -1018,7 +1226,7 @@ function evalSignal () {
     }
 
     if (!p || !q || !actions['U'] || !actions['D'] || !actions['L'] || !actions['R']) {
-        alert('Give a complete answer.');
+		console.log('Incomplete answer');
         return false;
     }
 
@@ -1031,7 +1239,10 @@ function evalSignal () {
     p1dev = (p1 === '1') ? '2' : '1';
     p2dev = (p1dev === '1') ? actions['L'] : actions['R'];
     dev = extPayoffs[p1dev][p2dev];
-    if (outcome[0] < dev[0]) return false;
+    if (outcome[0] < dev[0]) {
+		console.log('Deviation by 1 at U');
+		return false;
+	}
 
     // D
     p1 = actions['D'];
@@ -1042,7 +1253,10 @@ function evalSignal () {
     p1dev = (p1 === '3') ? '4' : '3';
     p2dev = (p1dev === '3') ? actions['L'] : actions['R'];
     dev = extPayoffs[p1dev][p2dev];
-    if (outcome[0] < dev[0]) return false;
+    if (outcome[0] < dev[0]) {
+		console.log('Deviation by 1 at D');
+		return false;
+	}
 
     // Player 2 deviation at L
     p = textInput('SIG_p');
@@ -1050,7 +1264,10 @@ function evalSignal () {
     p2dev = (p2 === 'A') ? 'B' : 'A';
     outcome = p * extPayoffs[1][p2][1] + (1-p) * extPayoffs[3][p2][1];
     dev = p * extPayoffs[1][p2dev][1] + (1-p) * extPayoffs[3][p2dev][1];
-    if (isLarger(dev, outcome)) return false;
+    if (isLarger(dev, outcome)) {
+		console.log('Deviation by 2 at L');
+		return false;
+	}
 
     // Player 2 deviation at R
 	q = textInput('SIG_q');
@@ -1058,26 +1275,41 @@ function evalSignal () {
     p2dev = (p2 === 'C') ? 'D' : 'C';
     outcome = q * extPayoffs[2][p2][1] + (1-q) * extPayoffs[4][p2][1];
     dev = q * extPayoffs[2][p2dev][1] + (1-q) * extPayoffs[4][p2dev][1];
-    if (isLarger(dev, outcome)) return false;
+    if (isLarger(dev, outcome)) {
+		console.log('Deviation by 2 at R');
+		return false;
+	}
 
     // Beliefs
 
     // Separating
 
     if (actions['U'] == '1' && actions['D'] == '4') {
-        if (!isClose(p, 1) || !isClose(q, 0)) return false;
+        if (!isClose(p, 1) || !isClose(q, 0)) {
+			console.log('Incorrect beliefs');
+			return false;
+		}
     }
     if (actions['U'] == '2' && actions['D'] == '3') {
-        if (!isClose(p, 0) || !isClose(q, 1)) return false;
+        if (!isClose(p, 0) || !isClose(q, 1)) {
+			console.log('Incorrect beliefs');
+			return false;
+		}
     }
 
     // Pooling
 
     if (actions['U'] == '1' && actions['D'] == '3') {
-        if (!isClose(p, fracToDec(signProb))) return false;
+        if (!isClose(p, fracToDec(signProb))) {
+			console.log('Incorrect beliefs');
+			return false;
+		}
     }   
     if (actions['U'] == '2' && actions['D'] == '4') {
-        if (!isClose(q, fracToDec(signProb))) return false;
+        if (!isClose(q, fracToDec(signProb))) {
+			console.log('Incorrect beliefs');
+			return false;
+		}
     }   
     
     return true;
@@ -1096,12 +1328,15 @@ function evalCore () {
 		x.forEach(i => tot += resp[i-1]);
 		if (x.length === players) {
 			if (!isClose(tot, worth[x])) {
-				alert("Doesn't add up to grand coalition cost.");
+				console.log("Doesn't add up c(N)");
 				isCore = false;
 			}
 		}
 		else {
-			if (isLarger(tot, worth[x])) isCore = false;
+			if (isLarger(tot, worth[x])) {
+				console.log(x + 'blocks');
+				isCore = false;
+			}
 		}
 	});
 	return isCore;
@@ -1146,7 +1381,10 @@ function evalShapley () {
 	tot = tot.map(val => val / norm);
 
 	for (let i = 0; i < players; i++) {
-		if (!isClose(resp[i], tot[i])) return false;
+		if (!isClose(resp[i], tot[i])) {
+			console.log((i+1) + "isn't correct");
+			return false;
+		}
 	}
 	return true;
 }
