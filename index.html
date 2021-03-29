@@ -8,17 +8,16 @@
         <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
     </head
     <body>
-        <div id="title" class="title">
-            <a id="titleBtn" href="#" onclick="home()">Applied Game Theory</a>
+        <div id="title" onclick="home()"> 
+			Applied Game Theory
         </div>
 
-        <div id='navbar' class="navbar"> 
-            <div class="dropdown">
-                <button class="dropbtn">
-					Exercise type
-					<i class="fa fa-caret-down"></i>
-                </button>
-                <div class="dropdown-content">
+
+        <div id='menu'> 
+            <div class="menu-item">
+				Exercise type
+				<i class="fa fa-caret-down"></i>
+                <div class="menu-item-content">
                     <a href="#" onclick="init('WDA')"><span class="text">Weakly dominated actions</span><span id='navWDA' class="material-icons icon"></span></a> 
                     <a href="#" onclick="init('NE')"><span class="text">Nash equilibrium</span><span id='navNE' class="material-icons icon"></span></a>
                     <a href="#" onclick="init('Cou')"><span class="text">Cournot competition</span><span id='navCou' class="material-icons icon"></span></a>
@@ -30,25 +29,13 @@
                     <a href="#" onclick="init('Shap')"><span class="text">The Shapley value</span><span id='navShap' class="material-icons icon"></span></a>
                 </div>
             </div> 
-            <div class="dropdown">
-                <button class="dropbtn">
-					Customize
-					<i class="fa fa-caret-down"></i>
-                </button>
-                <div id="paramList" class="dropdown-content">
-                </div>
+            <div class="menu-item">
+				Customize
+				<i class="fa fa-caret-down"></i>
+                <div id="paramList" class="menu-item-content"></div>
             </div>
         </div>  
     
-        <div> 
-            <div id='output_right' class="output hide">
-                You're right!           
-            </div>
-            <div id='output_wrong' class="output wrong hide">
-                No, try again.
-            </div>
-        </div>
-
 		<div id='feedbackFormDiv' class='feedbackFormDiv hide'>
 			<iframe id='feedbackForm' class="feedbackForm" src="https://docs.google.com/forms/d/e/1FAIpQLSdyum4o7Jj7aVY2A8TFQrKUIvxLVu0lcj8O72KYG9IH71NmpQ/viewform?embedded=true">Loading…</iframe>
 		</div>
@@ -128,6 +115,16 @@
             <div id="more">
             </div>
         </div>
+
+        <div id='output' class="hide"> 
+            <div id='output_right' class="right hide">
+                You're right!           
+            </div>
+            <div id='output_wrong' class="wrong hide">
+                No, try again.
+            </div>
+        </div>
+
     
     <script src="script.js"></script>
     </body>

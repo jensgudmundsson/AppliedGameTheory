@@ -1,12 +1,86 @@
-button {
-	padding: 18px;
-}
-
 body {
 	font-size: 18px;
 	font-family: Arial, Helvetica, sans-serif;
+	text-decoration: none;
 	margin: 0;
 }
+
+#title {
+	width: auto;
+	padding: 18px 0 0 18px;
+	font-size: 24px;
+	background-color: #222;
+	color: white;
+	cursor: pointer;
+}
+
+#menu {
+	overflow: hidden;
+	background-color: #222;
+}
+
+.menu-item {
+	float: left;
+	color: white;
+	text-align: center;
+	cursor: pointer;
+	padding: 18px;
+}
+
+.menu-item:hover .menu-item-content {
+	max-height: 1000px;
+    transition: max-height .4s ease-in-out; 
+}
+
+.menu-item-content {
+	top:103px;
+	left:0px;
+	position: absolute;
+	background-color: white;
+	min-width: 350px;
+	box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+	z-index: 1;
+	max-height: 0;
+	overflow: hidden;
+    transition: all .2s ease-in-out; 
+}
+
+.menu-item-content a {
+	float: none;
+	color: black;
+	display: block;
+	text-align: left;
+	height: 57px;
+    transition: background-color .3s ease-in-out; 
+}
+
+.menu-item-content a .text {
+	position: absolute;
+	margin: 18px 0px 18px 18px;
+}
+
+.menu-item-content a .icon {
+	float: right;
+}
+
+.menu-item-content a .lock {
+	margin: 19.5px;
+	font-size: 18px;
+	color: rgba(0,0,0,.5);
+}
+
+.menu-item-content a .star {
+	float: right;
+	margin: 10.5px;
+	font-size: 36px;
+	color: rgba(212, 175, 55, 1);
+}
+
+.menu-item-content a:hover {
+	background-color: #ddd;
+	width: 100%;
+}
+
 
 select, input {
 	display: inline;
@@ -26,125 +100,14 @@ select:hover {
 	cursor: pointer;
 }
 
-.title {
-	width: auto;
-	padding: 18px 0 0 18px;
-	font-size: 24px;
-	overflow: hidden;
-	background-color: #222;
-}
-
-.title a {
-	color: white;
-	text-decoration: none;
-}
-
 .main {
 	width: 80%; 
 	margin: 18px auto;
 	line-height: 2;
 }
 
-.material-icons.md-light { color: rgba(255, 255, 255, 1); }
+.material-icons.md-light { color: white; }
 .material-icons.md-30 { font-size: 30px; }
-
-.output {
-	position: fixed;
-	margin: 3% auto;
-	text-align: center;
-	background-color: #fff;
-	padding: 18px;
-	box-shadow: 0px 8px 16px 0px #afa;
-	border: solid #8d8;
-	left: 40%;
-	width: 20%;
-	opacity: 0;
-	transition: opacity .3s ease-in-out;
-}
-
-.wrong {
-	box-shadow: 0px 8px 16px 0px #faa; 
-	border: solid #d88;
-}
-
-.navbar {
-	overflow: hidden;
-	background-color: #222;
-}
-
-.navbar a {
-	float: left;
-	color: white;
-	text-align: center;
-	text-decoration: none;
-}
-
-.dropdown {
-	float: left;
-	overflow: hidden;
-}
-
-.dropdown .dropbtn {
-	font-size: inherit;
-	border: none;
-	outline: none;
-	color: white;
-	background-color: inherit;
-	font-family: inherit;
-	margin: 0;
-}
-
-.navbar a:hover, .dropdown:hover .dropbtn {
-  background-color: #333;
-}
-
-.dropdown-content {
-  display: none;
-  position: absolute;
-  background-color: #fff;
-  min-width: 340px;
-  box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
-  z-index: 1;
-}
-
-.dropdown-content a {
-  float: none;
-  color: black;
-  text-decoration: none;
-  display: block;
-  text-align: left;
-  height: 57px;
-}
-
-.dropdown-content a .text {
-	position: absolute;
-	margin: 18px 0px 18px 18px;
-}
-
-.dropdown-content a .icon {
-	float: right;
-}
-
-.dropdown-content a .lock {
-	margin: 19.5px;
-	font-size: 18px;
-	color: rgba(0,0,0,.5);
-}
-
-.dropdown-content a .star {
-	float: right;
-	margin: 10.5px;
-	font-size: 36px;
-	color: rgba(212, 175, 55, 1);
-}
-
-.dropdown-content a:hover {
-  background-color: #ddd;
-}
-
-.dropdown:hover .dropdown-content {
-  display: block;
-}
 
 .payoffmatrix {
 	margin-left: 25%;
@@ -159,7 +122,6 @@ select:hover {
 .heading { font-weight: bold; }
 .space { padding-top: 9px; }
 .hide { display: none; }
-.visible { opacity: 1; }
 .ital { font-style: italic; }
 
 canvas {
@@ -263,4 +225,32 @@ canvas {
 #submit::before { 
 	color: rgba(0,100,0,1); 
 	background-color: rgba(0,100,0,1);
+}
+
+#output {
+	position: absolute;
+	top: 0;
+	left: 35%;
+	width: 30%;
+	margin: 112px auto;
+	text-align: center;
+	background-color: white;
+	opacity: 0;
+	transition: opacity .3s ease-in-out;
+}
+
+#output .right {
+	padding: 18px;
+	box-shadow: 0px 8px 16px 0px #afa;
+	border: solid #8d8;
+}
+
+#output .wrong {
+	padding: 18px;
+	box-shadow: 0px 8px 16px 0px #faa; 
+	border: solid #d88;
+}
+
+#output.vis {
+	opacity: 1;
 }

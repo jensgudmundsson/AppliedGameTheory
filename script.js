@@ -26,6 +26,11 @@ for (let i = 0; i < coll.length; i++) {
 // HELPER FUNCTIONS
 
 const $ = id => document.getElementById(id);
+
+const textInput = id => {
+	var arr = $(id).value.split('/');
+	return arr.length === 1 ? +arr[0] : +arr[0] / +arr[1];
+}
 const fracToDec = frac => {
     var arr = frac.split('/');
     return arr.length === 1 ? +arr[0] : +arr[0] / +arr[1];
@@ -127,7 +132,7 @@ function setIcons () {
             $(x).classList.remove('lock');
             $(x).innerText = '';
         }
-        if (c > unlock) { 
+		else {
             $(x).classList.add('lock');
             $(x).innerText = 'lock';
         }
@@ -160,7 +165,7 @@ function feedbackClick () {
 		document.removeEventListener('click', feedbackClick);
 	}
 
-	if ($('titleBtn').contains(event.target)) {
+	if ($('title').contains(event.target)) {
 		$('main').classList.add('hide');
 		document.removeEventListener('click', feedbackClick);
 	}
@@ -170,14 +175,16 @@ function feedbackClick () {
 
 function home () {
     exercise = undefined;
-    exNum = undefined;
-    $('intro').classList.remove('hide');
-    $('main').classList.add('hide');
-    $('paramList').innerHTML = '';
+	updateTexts();
 }
 
 function updateTexts () {
-    if (exercise === undefined) return;
+    if (exercise === undefined) {
+		$('intro').classList.remove('hide');
+		$('main').classList.add('hide');
+		$('paramList').innerHTML = '';
+		return;
+	}
     $('intro').classList.add('hide');
     $('main').classList.remove('hide');
 
@@ -308,10 +315,12 @@ function evaluateAnswer() {
     armed = false;
 
     res = res ? 'output_right' : 'output_wrong';
+
+	$('output').classList.remove('hide');
     $(res).classList.remove('hide');
+    setTimeout( () => $('output').classList.add('vis'), 0);
+    setTimeout( () => $('output').classList.remove('vis'), 1500);
     setTimeout( () => $(res).classList.add('hide'), 1700);
-    setTimeout( () => $(res).classList.add('visible'), 0);
-    setTimeout( () => $(res).classList.remove('visible'), 1500);
     setIcons();
 }
 
@@ -469,7 +478,7 @@ const more = {
     'Stack': "What about profits? Compare to the Cournot model: how much would firm 1 be willing to pay (in the Cournot setting) to get a first-mover advantage?",
     'Signal': "Is the equilibrium pooling or separating? Does it work for a larger set of beliefs? Can you find an equilibrium that involves mixed strategies?",
 	'Core': "It's rare that there's a unique core allocation. If there are several here, can you find an expression for the core as a whole? What properties does the game satisfy? What difference would it make when looking at surplus-sharing games instead?",
-	'Shap': "Is this Shapley value in the game's core? What difference would it make when looking at surplus-sharing games instead?",
+	'Shap': "Here, is the Shapley value in the game's core? What difference would it make when looking at surplus-sharing games instead?",
 };
 
 // EXERCISE FUNCTIONS
@@ -504,14 +513,14 @@ function generatePayoffMatrix() {
 
 function generateCournot () {
     demand = {
-        'a': 50 + Math.floor(Math.random() * 200),
+        'a': 80 + Math.floor(Math.random() * 200),
         'b': Math.ceil(Math.random() * 4)
     };
 
     costs = [];
     for (let f = 0; f < firms; f++) {
         let c = {
-            'a': 5 + Math.floor(Math.random() * 40),
+            'a': 5 + Math.floor(Math.random() * 20),
             'b': (costType === 'quadratic') * Math.floor(Math.random() * 5)
         }
         costs.push(c);
@@ -873,17 +882,17 @@ function evalCou() {
     var q = [];
 
     for (let f = 0; f < firms; f++) {
-        q.push(fracToDec($('qty' + f).value));
+        q.push(textInput('qty' + f));
     }
     var totQ = sum(q);
 
     for (let f = 0; f < firms; f++) {
-		let br = (demand['a'] - demand['b'] * (totQ - q[f]) - costs[f]['a']) / (2 * (demand['b'] - costs[f]['b']));
+		let br = (demand['a'] - demand['b'] * (totQ - q[f]) - costs[f]['a']) / (2 * (demand['b'] + costs[f]['b']));
         if (!isClose(q[f], br, .1)) return false;
     }
 
     var price = demand['a'] - demand['b'] * totQ;
-    if (!isClose(fracToDec($('price').value), price)) return false;
+    if (!isClose(textInput('price'), price)) return false;
     return true;
 }
 
@@ -891,11 +900,11 @@ function evalMix() {
     var pr = [], pc = [];
     var probtotal = [0,0];
     for (let i = 0; i < rows; i++) {
-        pr[i] = fracToDec($('pr' + i).value);
+        pr[i] = textInput('pr' + i);
         probtotal[0] += pr[i];
     }
     for (let j = 0; j < cols; j++) {
-        pc[j] = fracToDec($('pc' + j).value);
+        pc[j] = textInput('pc' + j);
         probtotal[1] += pc[j];
     }
     if (!isClose(probtotal[0], 1) || !isClose(probtotal[1], 1)) {
@@ -970,7 +979,7 @@ function evalStack() {
     var q = [];
 
     for (let f = 0; f < firms; f++) {
-        q.push(fracToDec($('qty' + f).value));
+        q.push(textInput('qty' + f));
     }
     var totQ = sum(q);
 
@@ -985,12 +994,14 @@ function evalStack() {
         br[2] = (demand['a'] - costs[2]['a']) / (2 * demand['b']) - br[0] / 2 - br[1] / 2;
     }
 
+	console.log(br);
+
     for (let f = 0; f < firms; f++) {
         if (!isClose(q[f], br[f], .1)) return false;
     }
 
     var price = demand['a'] - demand['b'] * totQ;
-    if (!isClose(fracToDec($('price').value), price)) return false;
+    if (!isClose(textInput('price'), price)) return false;
     return true;
 }
 
@@ -1034,7 +1045,7 @@ function evalSignal () {
     if (outcome[0] < dev[0]) return false;
 
     // Player 2 deviation at L
-    p = fracToDec(p);
+    p = textInput('SIG_p');
     p2 = actions['L'];
     p2dev = (p2 === 'A') ? 'B' : 'A';
     outcome = p * extPayoffs[1][p2][1] + (1-p) * extPayoffs[3][p2][1];
@@ -1042,7 +1053,7 @@ function evalSignal () {
     if (isLarger(dev, outcome)) return false;
 
     // Player 2 deviation at R
-    q = fracToDec(q);
+	q = textInput('SIG_q');
     p2 = actions['R'];
     p2dev = (p2 === 'C') ? 'D' : 'C';
     outcome = q * extPayoffs[2][p2][1] + (1-q) * extPayoffs[4][p2][1];
@@ -1075,7 +1086,7 @@ function evalSignal () {
 function evalCore () {
 	var resp = [];
 	for (let i = 0; i < players; i++) {
-		resp[i] = fracToDec($('x' + i).value);
+		resp[i] = textInput('x' + i);
 	}
 
 	var isCore = true;
@@ -1115,7 +1126,7 @@ function evalShapley () {
 	let tot = []; // Used for later computations
 	for (let i = 0; i < players; i++) {
 		tot[i] = 0;
-		resp[i] = fracToDec($('x' + i).value);
+		resp[i] = textInput('x' + i);
 	}
 	let arr = Array.from(Array(players),(e,i) => i+1);
 	let orders = permutations(arr);
