@@ -115,7 +115,7 @@ function getCookie(cname) {
 function fetchCookies() {
     unlock = +getCookie('unlock');
     if (!unlock) {
-        unlock = 0;
+        unlock = 99;
         setCookie('unlock', unlock);
     }
     
