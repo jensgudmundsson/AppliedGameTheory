@@ -300,7 +300,7 @@ function evaluateAnswer() {
 			else t = +t + 1;
 		}
 
-        progress = progress.substring(0, exNum) + t + progress.substring(exNum + 1, progress.length - exNum + 1);
+        progress = progress.substring(0, exNum) + t + progress.substring(exNum + 1, progress.length);
         setCookie('progress', progress);
     }
     if (armed && exNum == unlock) {
