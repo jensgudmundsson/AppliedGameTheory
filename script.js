@@ -2,8 +2,11 @@
 
 // VARIABLES AND CONSTANTS
 
-var exercise, exNum, payoffs = [], extPayoffs = {}, signProb, inst, rows = 2, cols = 2, demand = {}, costs = [], costType = 'linear', firms = 2, unlock, progress, streak = 0, armed = true, players = 3, worth = {};
+var exercise, exNum, payoffs = [], extPayoffs = {}, signProb, inst, rows = 2, cols = 2, demand = {}, costs = [], costType = 'linear', firms = 2, chance = 'No', unlock, progress, streak = 0, armed = true, players = 3, worth = {};
 const eps = 1e-6;
+
+const unlockLimit = 1; // 3
+const unlockInit = 99; // 0 
 
 // INTRO PAGE
 
@@ -114,19 +117,19 @@ function getCookie(cname) {
 function fetchCookies() {
     unlock = +getCookie('unlock');
     if (!unlock) {
-        unlock = 99;
+        unlock = unlockInit;
         setCookie('unlock', unlock);
     }
     
     progress = getCookie('progress');
     if (!progress) {
-        progress = '0000000000';
+        progress = '00000000000';
         setCookie('progress', progress);
     }
 }
 
 function setIcons () {
-    ['navWDA', 'navNE', 'navCou', 'navMix', 'navSPNE', 'navStack', 'navImperf', 'navSign', 'navCore', 'navShap'].forEach((x,c) => {
+    ['navWDA', 'navNE', 'navCou', 'navMix', 'navSPNE', 'navStack', 'navImperf', 'navPBE', 'navSign', 'navCore', 'navShap'].forEach((x,c) => {
         if (c <= unlock) {
             $(x).classList.remove('lock');
             $(x).innerText = '';
@@ -193,7 +196,7 @@ function updateTexts () {
     $('answer').innerHTML = answers[exercise]();
     $('more').innerHTML = more[exercise];
 
-    if (exercise != 'SPNE' && exercise != 'Imperf' && exercise != 'Signal') $('instance').innerHTML = inst;
+    if (exercise != 'SPNE' && exercise != 'Imperf' &&  exercise != 'PBE' && exercise != 'Signal') $('instance').innerHTML = inst;
     
     MathJax.typeset();
 }
@@ -205,6 +208,7 @@ function updateParams() {
     }
     if ($('costType')) costType = $('costType').value;
     if ($('firms')) firms = +$('firms').value;
+    if ($('chance')) chance = $('chance').value;
     if ($('players')) players = +$('players').value;
     init(exercise);
 }
@@ -219,9 +223,10 @@ function init(ex) {
         case 'SPNE': 	temp = 4; break;
         case 'Stack': 	temp = 5; break;
         case 'Imperf': 	temp = 6; break;
-        case 'Signal':	temp = 7; break;
-        case 'Core': 	temp = 8; break;
-        case 'Shap': 	temp = 9; break;
+        case 'PBE': 	temp = 7; break;
+        case 'Signal':	temp = 8; break;
+        case 'Core': 	temp = 9; break;
+        case 'Shap': 	temp = 10; break;
         default: return;
     }
 
@@ -249,6 +254,9 @@ function init(ex) {
             break;  
         case 'Imperf':
             generateImperf();
+			break;
+        case 'PBE':
+            generatePBE();
 			break;
         case 'Signal':
             generateSignal();
@@ -286,6 +294,9 @@ function evaluateAnswer() {
         case 'Imperf':
             res = evalImperf();
             break;
+        case 'PBE':
+            res = evalPBE();
+            break;
         case 'Signal':
             res = evalSignal();
             break;
@@ -313,7 +324,7 @@ function evaluateAnswer() {
         if (res) streak += 1;
         else streak = 0;
     }
-    if (armed && streak === 1) {
+    if (armed && streak >= unlockLimit) {
         unlock += 1;
         setCookie('unlock', unlock);
         streak = 0;
@@ -334,17 +345,17 @@ function evaluateAnswer() {
 
 const params = {
     'WDA': () => {
-        var str = "<a><span class='text'>Number of actions: <select id='rowActions' onchange='updateParams()'><optgroup label='Row'>";
+        var str = "<a><span class='text'>Players have <select id='rowActions' onchange='updateParams()'><optgroup label='Row'>";
         [2,3,4,5].forEach(x => {
             if (x === rows) str += "<option selected>" + x + "</option>";
             else str += "<option>" + x + "</option>";
         });
-        str +=  "</optgroup></select><select id='colActions' onchange='updateParams()'><optgroup label='Column'>";
+        str +=  "</optgroup></select> and <select id='colActions' onchange='updateParams()'><optgroup label='Column'>";
         [2,3,4,5].forEach(x => {
             if (x === cols) str += "<option selected>" + x + "</option>";
             else str += "<option>" + x + "</option>";
         });
-        str += "</optgroup></select></span></a>";
+        str += "</optgroup></select> actions</span></a>";
         return str;
     },
     
@@ -355,14 +366,13 @@ const params = {
             if (f === firms) str += 'selected';
             str += '>' + f + '</option>'
         });
-        str += '</select> firms</span></a>';
-        str += '<a><span class="text">Cost functions are <select id="costType" onchange="updateParams()">';
+        str += '</select> firms with <select id="costType" onchange="updateParams()">';
         ['linear', 'quadratic'].forEach(x => {
             str += '<option ';
             if (x === costType) str += 'selected';
             str += '>' + x + '</option>';
         });
-        str += '</select></span></a>';
+        str += '</select> cost functions</span></a>';
         return str;
     },
 
@@ -378,6 +388,17 @@ const params = {
         str += '</select> firms</span></a>';
         return str;
     },
+
+	'PBE': () => {
+		var str = "<a><span class='text'>Initial chance move? <select id='chance' onchange='updateParams()'>";
+        ['Yes','No'].forEach(x => {
+            str += '<option ';
+            if (x === chance) str += 'selected';
+            str += '>' + x + '</option>'
+        });
+        str += '</select></span></a>';
+		return str;
+	},
 
 	'Core': () => {
         var str = "<a><span class='text'>There are <select id='players' onchange='updateParams()'>";
@@ -404,6 +425,7 @@ const headers = {
 	'SPNE': "Subgame-perfect Nash equilibrium",
     'Stack': "Stackelberg competition",
     'Imperf': "Imperfect information",
+    'PBE': "Perfect Bayesian equilibrium",
     'Signal': "Signaling games",
 	'Core': "The core",
 	'Shap': "The Shapley value",
@@ -413,10 +435,11 @@ const descriptions = {
     'WDA': "Find weakly dominated actions in the game below (if such exist). If you're sure there isn't one, move on to a new problem.",
     'NE': "Find a pure-strategy Nash equilibrium in the game below below (if one exists). If you're sure there isn't one, move on to a new problem.",
     'Cou': "Find the Cournot equilibrium in the game below. Use fractions to avoid rounding errors (e.g., 1/3 instead of 0.33).",
-    'Mix': "Find a mixed-strategy Nash equilibrium in the game below. Remember that pure strategies are a special case of mixed strategies! Set the probability to 0 for unused actions (or leave empty). Use fractions to avoid rounding errors (e.g., 1/3 instead of 0.33).",
-	'SPNE': "Find a subgame-perfect Nash equilibrium in the game below. Remember: a strategy specifies an action at every decision node for the player.",
+    'Mix': "Find a mixed-strategy Nash equilibrium in the game below. Remember that pure strategies are a special case of mixed strategies. Set the probability to 0 for unused actions (or leave empty). Use fractions to avoid rounding errors (e.g., 1/3 instead of 0.33).",
+	'SPNE': "Find a pure-strategy subgame-perfect Nash equilibrium in the game below. Remember: a strategy specifies an action at every decision node for the player.",
     'Stack': "Find the Stackelberg equilibrium in the game below. Use fractions to avoid rounding errors (e.g., 1/3 instead of 0.33).",
-	'Imperf': "Find a subgame-perfect Nash equilibrium in the game below. Remember: a strategy specifies an action at every information set for the player.",
+	'Imperf': "Find a pure-strategy subgame-perfect Nash equilibrium in the game below (if one exists). If you're sure there isn't one, move on to a new problem. Remember: a strategy specifies an action at every information set for the player.",
+    'PBE': "Find a mixed-strategy perfect Bayesian equilibrium in the game below. Remember that pure strategies are a special case of mixed strategies. Set the probability to 0 for unused actions (or leave empty). Use fractions to avoid rounding errors (e.g., 1/3 instead of 0.33).",
     'Signal': "Find a pure-strategy perfect Bayesian equilibrium in the signaling game below.",
 	'Core': "Find a core allocation in the cost-sharing game below (if one exists). If you're sure there isn't one, move on to a new problem.",
 	'Shap': "Find the Shapley value of the cost-sharing game below.",
@@ -442,23 +465,32 @@ const answers = {
 
 	'Imperf': () => 'Player 1 plays <select id="Imp_IO"><option disabled selected></option><option>In</option><option>Out</option></select> and <select id="Imp_1"><option disabled selected></option><option>1</option><option>2</option></select>. Player 2 plays <select id="Imp_2"><option disabled selected></option><option>A</option><option>B</option></select>.',
 
+    'PBE': () => {
+		switch (chance) {
+			case 'No': 
+				return "Player 1 mixes with probabilities <input size=5 id='PBE_1' placeholder='1'>, <input size=5 id='PBE_2' placeholder='2'>, and <input size=5 id='PBE_OUT' placeholder='Out'>. Player 2 mixes with probabilities <input size=5 id='PBE_A' placeholder='A'> and <input size=5 id='PBE_B' placeholder='B'>. The belief probability is <input size=5 id='PBE_p' placeholder='p'>.";
+			case 'Yes':
+				return "Player 1 mixes with probabilities <input size=5 id='PBE_IN' placeholder='In'> and <input size=5 id='PBE_OUT' placeholder='Out'>. Player 2 mixes with probabilities <input size=5 id='PBE_A' placeholder='A'> and <input size=5 id='PBE_B' placeholder='B'>. The belief probability is <input size=5 id='PBE_p' placeholder='p'>.";
+		}
+	},
+
     'Signal': () => {
         function optList (arr) {
             var str = '<option selected disabled></option>';
             arr.forEach(x => str += '<option>' + x + '</option>');
             return str;
         }
-        return 'Player 1 plays <select id="SIG_1">' + optList([1,2]) + '</select> at U and <select id="SIG_2">' + optList([3,4]) + '</select> at D; player 2 plays <select id="SIG_3">' + optList(['A','B']) + '</select> at L and <select id="SIG_4">' + optList(['C','D']) + '</select> at R. Beliefs are <input id="SIG_p" size=5 placeholder="p"> and <input id="SIG_q" size=5 placeholder="q">.';
+        return 'Player 1 plays <select id="SIG_1">' + optList([1,2]) + '</select> at U and <select id="SIG_2">' + optList([3,4]) + '</select> at D. Player 2 plays <select id="SIG_3">' + optList(['A','B']) + '</select> at L and <select id="SIG_4">' + optList(['C','D']) + '</select> at R. Beliefs are <input id="SIG_p" size=5 placeholder="p"> and <input id="SIG_q" size=5 placeholder="q">.';
     },
 
 	'Core': () => {
         var str = 'A core allocation assigns costs ';
         for (let i = 0; i < players; i++) {
 			if (i == players - 1) {
-            	str += 'and <input size=6 id="x' + i + '" placeholder="Player ' + (i+1) + '">.';
+            	str += 'and <input size=6 id="x' + i + '" placeholder="' + (i+1) + '">.';
 			}
 			else {
-				str += '<input size=6 id="x' + i + '" placeholder="Player ' + (i+1) + '">, ';
+				str += '<input size=6 id="x' + i + '" placeholder="' + (i+1) + '">, ';
 			}
         }
         return str;
@@ -468,10 +500,10 @@ const answers = {
         var str = 'The Shapley value assigns costs ';
         for (let i = 0; i < players; i++) {
 			if (i == players - 1) {
-            	str += 'and <input size=6 id="x' + i + '" placeholder="Player ' + (i+1) + '">.';
+            	str += 'and <input size=6 id="x' + i + '" placeholder="' + (i+1) + '">.';
 			}
 			else {
-				str += '<input size=6 id="x' + i + '" placeholder="Player ' + (i+1) + '">, ';
+				str += '<input size=6 id="x' + i + '" placeholder="' + (i+1) + '">, ';
 			}
         }
         return str;
@@ -485,8 +517,9 @@ const more = {
     'NE': "Are there more than one equilibrium? Is the equilibrium strict or weak? If there are several, does one of them stand out?",
     'Cou': "What about profits? What if the firms chose to collude? (What would you use as cost function?) What's the consumer surplus?",
     'Mix': "What's the interpretation of this equilibrium?",
-	'SPNE': "How many subgames are there? Can you find a Nash equilibrium that isn't subgame perfect? This exercise is limited to a particular structure on the game tree, make sure you understand the underlying ideas so you can solve other ones as well.",
+	'SPNE': "How many subgames are there? Can you find a Nash equilibrium that isn't subgame perfect? Warning: This exercise is limited to a particular structure on the game tree, make sure you understand the underlying ideas so you can solve other ones as well.",
     'Stack': "What about profits? Compare to the Cournot model: how much would firm 1 be willing to pay (in the Cournot setting) to get a first-mover advantage?",
+	'PBE': "How many subgames are there? Can you find an equilibrium that isn't perfect Bayesian? What about subgame perfection? Is there one in which both players mix over all (or at least some) actions? Warning: This exercise is limited to a particular structure on the game tree, make sure you understand the underlying ideas so you can solve other ones as well.",
     'Signal': "Is the equilibrium pooling or separating? Does it work for a larger set of beliefs? Can you find an equilibrium that involves mixed strategies?",
 	'Core': "It's rare that there's a unique core allocation. If there are several here, can you find an expression for the core as a whole? What properties does the game satisfy? What difference would it make when looking at surplus-sharing games instead?",
 	'Shap': "Here, is the Shapley value in the game's core? What difference would it make when looking at surplus-sharing games instead?",
@@ -781,6 +814,207 @@ function generateImperf () {
 	ctx.fillText(sp('A',2), w/2 - xleaf * d + xleaf2 * d, top + d + yleaf * d + yleaf2 * d);
 	ctx.fillText(sp('B',1), w/2 + xleaf * d - xleaf2 * d, top + d + yleaf * d + yleaf2 * d);
 	ctx.fillText(sp('B',2), w/2 + xleaf * d + xleaf2 * d, top + d + yleaf * d + yleaf2 * d);
+
+    $('instance').removeChild($('instance').lastChild);
+    $('instance').innerHTML = '';
+    $('instance').appendChild(canv);
+}
+
+// PBE
+
+function generatePBE () {
+
+	function genPair () {
+		return Array.from({ length: 2}, () =>
+			Math.floor(Math.random() * 10)
+			)
+	}
+
+    extPayoffs = {
+		'Out': genPair(),
+		'1': {'A': genPair(), 'B': genPair() },
+		'2': {'A': genPair(), 'B': genPair() },
+	}
+
+    var radius = 3;
+	var top = 30;
+    var sep = 8; // Text shift
+    var sep2 = 16; // Extra shift
+    var angle = Math.PI / 4;
+    var angle2 = Math.PI / 6;
+    var xleaf = 1.1 * Math.sin(angle);
+    var yleaf = 1.1 * Math.cos(angle);
+    var xleaf2 = Math.sin(angle2);
+    var yleaf2 = Math.cos(angle2);
+
+	if (chance === 'No') {
+		var w = 320;
+		var h = 220;
+		var d = 100;
+	
+		var canv = document.createElement('canvas');
+		canv.width = w;
+		canv.height = h;
+		
+		var ctx = canv.getContext('2d');
+		ctx.font = '18px Arial, Helvetica, sans-serif';
+    
+		ctx.arc(w/2, top, radius, 0, 2 * Math.PI);
+		ctx.closePath();
+		ctx.arc(w/2 - xleaf * d, top + yleaf * d, radius, 0, 2 * Math.PI);
+		ctx.closePath();
+		ctx.arc(w/2 + xleaf * d, top + yleaf * d, radius, 0, 2 * Math.PI);
+		ctx.closePath();
+		ctx.fill();
+	
+		ctx.beginPath();
+		ctx.moveTo(w/2, top);
+		ctx.lineTo(w/2 + d, top);
+		ctx.moveTo(w/2, top);
+		ctx.lineTo(w/2 + xleaf * d, top + yleaf * d);
+		ctx.moveTo(w/2, top);
+		ctx.lineTo(w/2 - xleaf * d, top + yleaf * d);
+		ctx.lineTo(w/2 - xleaf * d - xleaf2 * d, top + yleaf * d + yleaf2 * d);
+		ctx.moveTo(w/2 - xleaf * d, top + yleaf * d);
+		ctx.lineTo(w/2 - xleaf * d + xleaf2 * d, top + yleaf * d + yleaf2 * d);
+		ctx.moveTo(w/2 + xleaf * d, top + yleaf * d);
+		ctx.lineTo(w/2 + xleaf * d - xleaf2 * d, top + yleaf * d + yleaf2 * d);
+		ctx.moveTo(w/2 + xleaf * d, top + yleaf * d);
+		ctx.lineTo(w/2 + xleaf * d + xleaf2 * d, top + yleaf * d + yleaf2 * d);
+		ctx.stroke();
+	
+		ctx.textAlign = 'end';
+		ctx.textBaseline = 'bottom';
+		ctx.fillText('Player 1', w/2 - sep, top);
+		ctx.textAlign = 'center';
+		ctx.textBaseline = 'middle';
+		ctx.fillText('[p]  Player 2  [1-p]', w/2, top + yleaf * d);
+		ctx.textAlign = 'center';
+		ctx.textBaseline = 'bottom';
+		ctx.fillText('Out', w/2 + d/2, top);
+		ctx.textBaseline = 'middle';
+		ctx.fillText('1', w/2 - xleaf * d/2 - sep, top + yleaf * d / 2 - sep);
+		ctx.fillText('2', w/2 + xleaf * d/2 + sep, top + yleaf * d / 2 - sep);
+		ctx.fillText('A', w/2 - xleaf * d - xleaf2 * d / 2 - sep, top + yleaf * d + yleaf2 * d / 2 - sep);
+		ctx.fillText('B', w/2 - xleaf * d + xleaf2 * d / 2 + sep, top + yleaf * d + yleaf2 * d / 2 - sep);
+		ctx.fillText('A', w/2 + xleaf * d - xleaf2 * d / 2 - sep, top + yleaf * d + yleaf2 * d / 2 - sep);
+		ctx.fillText('B', w/2 + xleaf * d + xleaf2 * d / 2 + sep, top + yleaf * d + yleaf2 * d / 2 - sep);
+	
+		[-d,d].forEach(x => {
+			ctx.beginPath();
+			ctx.setLineDash([5, 5]);
+			ctx.moveTo(w/2 - xleaf * d, top + yleaf * d + sep2);
+			ctx.arc(w/2 - xleaf * d, top + yleaf * d, sep2, Math.PI/2, -Math.PI/2);
+			ctx.lineTo(w/2 + xleaf * d, top + yleaf * d - sep2);
+			ctx.arc(w/2 + xleaf * d, top + yleaf * d, sep2, -Math.PI/2, Math.PI/2);
+			ctx.closePath();
+			ctx.stroke();
+		});
+	
+		const sp = (i,j) => extPayoffs[i][j].join(', ');
+	
+		ctx.textAlign = 'start';
+		ctx.fillText(extPayoffs['Out'].join(', '), w/2 + d + sep, top);
+	
+		ctx.textAlign = 'center';
+		ctx.textBaseline = 'top';
+		ctx.fillText(sp(1,'A'), w/2 - xleaf * d - xleaf2 * d, top + yleaf * d + yleaf2 * d);
+		ctx.fillText(sp(1,'B'), w/2 - xleaf * d + xleaf2 * d, top + yleaf * d + yleaf2 * d);
+		ctx.fillText(sp(2,'A'), w/2 + xleaf * d - xleaf2 * d, top + yleaf * d + yleaf2 * d);
+		ctx.fillText(sp(2,'B'), w/2 + xleaf * d + xleaf2 * d, top + yleaf * d + yleaf2 * d);
+	}
+
+	else {
+		var poss = ['1/2', '1/3', '1/4', '1/5', '2/3', '2/5', '3/5', '4/5'];
+		var opp = ['1/2', '2/3', '3/4', '4/5', '1/3', '3/5', '2/5', '1/5'];
+		var indx = Math.floor(Math.random() * poss.length);
+		signProb = poss[indx];
+		var signOpp = opp[indx];
+
+		var w = 440;
+		var h = 220;
+		var d = 100;
+	
+		var canv = document.createElement('canvas');
+		canv.width = w;
+		canv.height = h;
+		
+		var ctx = canv.getContext('2d');
+		ctx.font = '18px Arial, Helvetica, sans-serif';
+		ctx.arc(w/2 - xleaf * d, top, radius, 0, 2 * Math.PI);
+		ctx.closePath();
+		ctx.arc(w/2 + xleaf * d, top, radius, 0, 2 * Math.PI);
+		ctx.closePath();
+		ctx.arc(w/2 - xleaf * d, top + yleaf * d, radius, 0, 2 * Math.PI);
+		ctx.closePath();
+		ctx.arc(w/2 + xleaf * d, top + yleaf * d, radius, 0, 2 * Math.PI);
+		ctx.closePath();
+		ctx.fill();
+	
+		ctx.beginPath();
+		ctx.moveTo(w/2 - xleaf * d, top);
+		ctx.lineTo(w/2 + xleaf * d + d, top);
+		ctx.moveTo(w/2 - xleaf * d, top);
+		ctx.lineTo(w/2 - xleaf * d, top + yleaf * d);
+		ctx.lineTo(w/2 - xleaf * d - xleaf2 * d, top + yleaf * d + yleaf2 * d);
+		ctx.moveTo(w/2 + xleaf * d, top);
+		ctx.lineTo(w/2 + xleaf * d, top + yleaf * d);
+		ctx.moveTo(w/2 - xleaf * d, top + yleaf * d);
+		ctx.lineTo(w/2 - xleaf * d + xleaf2 * d, top + yleaf * d + yleaf2 * d);
+		ctx.moveTo(w/2 + xleaf * d, top + yleaf * d);
+		ctx.lineTo(w/2 + xleaf * d - xleaf2 * d, top + yleaf * d + yleaf2 * d);
+		ctx.moveTo(w/2 + xleaf * d, top + yleaf * d);
+		ctx.lineTo(w/2 + xleaf * d + xleaf2 * d, top + yleaf * d + yleaf2 * d);
+		ctx.stroke();
+	
+		ctx.textAlign = 'center';
+		ctx.textBaseline = 'bottom';
+		ctx.fillText('Nature', w/2 - xleaf * d, top - sep);
+		ctx.fillText(signProb, w/2, top - sep);
+		ctx.textAlign = 'end';
+		ctx.textBaseline = 'bottom';
+		ctx.fillText(signOpp, w/2 - xleaf * d - sep, top + d/2);
+		ctx.textAlign = 'center';
+		ctx.textBaseline = 'middle';
+		ctx.fillText('[p]  Player 2  [1-p]', w/2, top + yleaf * d);
+		ctx.textAlign = 'center';
+		ctx.textBaseline = 'bottom';
+		ctx.fillText('Player 1', w/2 + xleaf * d, top - sep);
+		ctx.textBaseline = 'top';
+		ctx.fillText('Out', w/2 + xleaf * d + d/2, top + sep/2);
+		ctx.textAlign = 'start';
+		ctx.textBaseline = 'bottom';
+		ctx.fillText('In', w/2 + xleaf * d + sep, top + d/2);
+		ctx.textAlign = 'center';
+		ctx.textBaseline = 'middle';
+		ctx.fillText('A', w/2 - xleaf * d - xleaf2 * d / 2 - sep, top + yleaf * d + yleaf2 * d / 2 - sep);
+		ctx.fillText('B', w/2 - xleaf * d + xleaf2 * d / 2 + sep, top + yleaf * d + yleaf2 * d / 2 - sep);
+		ctx.fillText('A', w/2 + xleaf * d - xleaf2 * d / 2 - sep, top + yleaf * d + yleaf2 * d / 2 - sep);
+		ctx.fillText('B', w/2 + xleaf * d + xleaf2 * d / 2 + sep, top + yleaf * d + yleaf2 * d / 2 - sep);
+	
+		[-d,d].forEach(x => {
+			ctx.beginPath();
+			ctx.setLineDash([5, 5]);
+			ctx.moveTo(w/2 - xleaf * d, top + yleaf * d + sep2);
+			ctx.arc(w/2 - xleaf * d, top + yleaf * d, sep2, Math.PI/2, -Math.PI/2);
+			ctx.lineTo(w/2 + xleaf * d, top + yleaf * d - sep2);
+			ctx.arc(w/2 + xleaf * d, top + yleaf * d, sep2, -Math.PI/2, Math.PI/2);
+			ctx.closePath();
+			ctx.stroke();
+		});
+	
+		const sp = (i,j) => extPayoffs[i][j].join(', ');
+	
+		ctx.textAlign = 'start';
+		ctx.fillText(extPayoffs['Out'].join(', '), w/2 + xleaf * d + d + sep, top);
+	
+		ctx.textAlign = 'center';
+		ctx.textBaseline = 'top';
+		ctx.fillText(sp(1,'A'), w/2 - xleaf * d - xleaf2 * d, top + yleaf * d + yleaf2 * d);
+		ctx.fillText(sp(1,'B'), w/2 - xleaf * d + xleaf2 * d, top + yleaf * d + yleaf2 * d);
+		ctx.fillText(sp(2,'A'), w/2 + xleaf * d - xleaf2 * d, top + yleaf * d + yleaf2 * d);
+		ctx.fillText(sp(2,'B'), w/2 + xleaf * d + xleaf2 * d, top + yleaf * d + yleaf2 * d);
+	}
 
     $('instance').removeChild($('instance').lastChild);
     $('instance').innerHTML = '';
@@ -1207,6 +1441,147 @@ function evalImperf() {
 	else {
 		if (extPayoffs['Out'][0] > extPayoffs['In'][s2][s1][0]) {
 			console.log('Deviation by 1 to Out');
+			return false;
+		}
+	}
+	return true;
+}
+
+function evalPBE() {
+	if (chance === 'No') {
+		var p1 = textInput('PBE_1');
+		var p2 = textInput('PBE_2');
+	}
+	else {
+		var pIn = textInput('PBE_IN');
+		var pi = fracToDec(signProb); // P1 gets to move
+	}
+	var pOut = textInput('PBE_OUT');
+	var pA = textInput('PBE_A');
+	var pB = textInput('PBE_B');
+	var p = textInput('PBE_p');
+	var dev;
+
+	if (!isClose(pA + pB, 1)) {
+		console.log("Player 2's probabilities don't add to one");
+		return false;
+	}
+
+	if (chance === 'No') {
+		if (!isClose(p1 + p2 + pOut, 1)) {
+			console.log("Player 1's probabilities don't add to one");
+			return false;
+		}
+	
+		// Expected payoffs under reported strategies
+	
+		var u1 = p1 * pA * extPayoffs['1']['A'][0] + p1 * pB * extPayoffs['1']['B'][0] + p2 * pA * extPayoffs['2']['A'][0] + p2 * pB * extPayoffs['2']['B'][0] + pOut * extPayoffs['Out'][0];
+		var u2 = p1 * pA * extPayoffs['1']['A'][1] + p1 * pB * extPayoffs['1']['B'][1] + p2 * pA * extPayoffs['2']['A'][1] + p2 * pB * extPayoffs['2']['B'][1] + pOut * extPayoffs['Out'][1];
+	
+		// Deviations by player 1
+	
+		dev = pA * extPayoffs['1']['A'][0] + pB * extPayoffs['1']['B'][0];
+		if (isLarger(dev, u1)) {
+			console.log('Deviation by player 1 to 1');
+			return false;
+		}
+	
+		dev = pA * extPayoffs['2']['A'][0] + pB * extPayoffs['2']['B'][0];
+		if (isLarger(dev, u1)) {
+			console.log('Deviation by player 1 to 2');
+			return false;
+		}
+	
+		dev = extPayoffs['Out'][0];
+		if (isLarger(dev, u1)) {
+			console.log('Deviation by player 1 to Out');
+			return false;
+		}
+	
+		// "Global" deviations by player 2
+	
+		dev = p1 * extPayoffs['1']['A'][1] + p2 * extPayoffs['2']['A'][1] + pOut * extPayoffs['Out'][1];
+		if (isLarger(dev, u2)) {
+			console.log('Deviation by player 2 to A');
+			return false;
+		}
+	
+		dev = p1 * extPayoffs['1']['B'][1] + p2 * extPayoffs['2']['B'][1] + pOut * extPayoffs['Out'][1];
+		if (isLarger(dev, u2)) {
+			console.log('Deviation by player 2 to B');
+			return false;
+		}
+	
+		// "Inner" deviations by player 2
+	
+		u2 = p * pA * extPayoffs['1']['A'][1] + p * pB * extPayoffs['1']['B'][1] + (1-p) * pA * extPayoffs['2']['A'][1] + (1-p) * pB * extPayoffs['2']['B'][1];
+		
+		dev = p * extPayoffs['1']['A'][1] + (1-p) * extPayoffs['2']['A'][1];
+		if (isLarger(dev, u2)) {
+			console.log('Inner deviation by player 2 to A');
+			return false;
+		}
+	
+		dev = p * extPayoffs['1']['B'][1] + (1-p) * extPayoffs['2']['B'][1];
+		if (isLarger(dev, u2)) {
+			console.log('Inner deviation by player 2 to B');
+			return false;
+		}
+	
+		// Consistent beliefs
+	
+		if (p1 + p2 > 0 && !isClose(p, p1 / (p1 + p2))) {
+			console.log('Inconsistent beliefs');
+			return false;
+		}
+	}
+	else {
+		if (!isClose(pIn + pOut, 1)) {
+			console.log("Player 1's probabilities don't add to one");
+			return false;
+		}
+	
+		// Expected payoffs under reported strategies
+	
+		var u1 = pOut * extPayoffs['Out'][0] + pIn * pA * extPayoffs[2]['A'][0] + pIn * pB * extPayoffs[2]['B'][0];
+		var u2 = pi * pOut * extPayoffs['Out'][1] + pi * pIn * pA * extPayoffs[2]['A'][1] + pi * pIn * pB * extPayoffs[2]['B'][1] + (1-pi) * pA * extPayoffs[1]['A'][1] + (1-pi) * pB * extPayoffs[1]['B'][1];
+	
+		// Deviations by player 1
+
+		dev = pA * extPayoffs[2]['A'][0] + pB * extPayoffs[2]['B'][0];
+		if (isLarger(dev, u1)) {
+			console.log('Deviation by player 1 to In');
+			return false;
+		}
+	
+		dev = extPayoffs['Out'][0];
+		if (isLarger(dev, u1)) {
+			console.log('Deviation by player 1 to Out');
+			return false;
+		}
+	
+		// Deviations by player 2
+	
+		dev = (1-pi) * extPayoffs[1]['A'][1] + pi * pIn * extPayoffs[2]['A'][1] + pi * pOut * extPayoffs['Out'][1];
+		if (isLarger(dev, u2)) {
+			console.log('Deviation by player 2 to A');
+			return false;
+		}
+	
+		dev = (1-pi) * extPayoffs[1]['B'][1] + pi * pIn * extPayoffs[2]['B'][1] + pi * pOut * extPayoffs['Out'][1];
+		if (isLarger(dev, u2)) {
+			console.log('Deviation by player 2 to B');
+			return false;
+		}
+	
+		// Consistent beliefs
+	
+		if (pOut < 1 && !isClose(p, (1-pi)/(1 - pi * pOut))) {
+			console.log('Inconsistent beliefs');
+			return false;
+		}
+		if (pOut == 1 && !isClose(p, 1)) {
+			console.log('Inconsistent beliefs');
 			return false;
 		}
 	}

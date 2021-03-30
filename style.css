@@ -27,7 +27,7 @@ body {
 	padding: 18px;
 }
 
-.menu-item:hover .menu-item-content {
+.menu-item:hover .menu-item-content, .menu-item:active .menu-item-content, .menu-item:focus .menu-item-content {
 	-webkit-transform: perspective(400) rotate3d(0,0,0,0deg);
 	-moz-transform: perspective(400) rotate3d(0,0,0,0deg);
 	-ms-transform: perspective(400) rotate3d(0,0,0,0deg);
@@ -78,12 +78,12 @@ body {
 	color: black;
 	display: block;
 	text-align: left;
-	height: 57px;
+	height: 45px;
 }
 
 .menu-item-content a .text {
 	position: absolute;
-	margin: 18px 0px 18px 18px;
+	margin: 12px 0px 12px 18px;
 }
 
 .menu-item-content a .icon {
@@ -91,14 +91,14 @@ body {
 }
 
 .menu-item-content a .lock {
-	margin: 19.5px;
+	margin: 13.5px;
 	font-size: 18px;
 	color: rgba(0,0,0,.5);
 }
 
 .menu-item-content a .star {
 	float: right;
-	margin: 10.5px;
+	margin: 4.5px;
 	font-size: 36px;
 	color: rgba(212, 175, 55, 1);
 }
@@ -108,6 +108,15 @@ body {
 	width: 100%;
 }
 
+.menu-item-content.custom {
+	width: auto;
+	min-width: 470px;
+}
+
+.menu-item-content.custom .text {
+	margin: 8px 18px 12px 18px;
+	white-space: nowrap;
+}
 
 select, input {
 	display: inline;
@@ -166,6 +175,7 @@ canvas {
 	text-align: left;
 	outline: none;
 	font-size: 18px;
+	margin-bottom: 3px;
 }
 
 .active, .collapsible:hover {
