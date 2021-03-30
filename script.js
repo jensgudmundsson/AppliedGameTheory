@@ -13,17 +13,17 @@ const unlockInit = 99; // 0
 var coll = document.getElementsByClassName("collapsible");
 
 for (let i = 0; i < coll.length; i++) {
-    coll[i].addEventListener("click", function() {
+	coll[i].addEventListener("click", function() {
 		for (let j = 0; j < coll.length; j++) {
 			if (j === i) continue;
-        	coll[j].classList.remove("active");
+			coll[j].classList.remove("active");
 			coll[j].nextElementSibling.style.maxHeight = null;
 		}
-        this.classList.toggle("active");
-        var content = this.nextElementSibling;
-        if (content.style.maxHeight) content.style.maxHeight = null;
-        else content.style.maxHeight = content.scrollHeight + "px";
-    });
+		this.classList.toggle("active");
+		var content = this.nextElementSibling;
+		if (content.style.maxHeight) content.style.maxHeight = null;
+		else content.style.maxHeight = content.scrollHeight + "px";
+	});
 }
 
 // HELPER FUNCTIONS
@@ -123,13 +123,13 @@ function fetchCookies() {
     
     progress = getCookie('progress');
     if (!progress) {
-        progress = '00000000000';
+        progress = '000000000000';
         setCookie('progress', progress);
     }
 }
 
 function setIcons () {
-    ['navWDA', 'navNE', 'navCou', 'navMix', 'navSPNE', 'navStack', 'navImperf', 'navPBE', 'navSign', 'navCore', 'navShap'].forEach((x,c) => {
+    ['navWDA', 'navNE', 'navCou', 'navMix', 'navSPNE', 'navStack', 'navImperf', 'navBNE', 'navPBE', 'navSign', 'navCore', 'navShap'].forEach((x,c) => {
         if (c <= unlock) {
             $(x).classList.remove('lock');
             $(x).innerText = '';
@@ -223,10 +223,11 @@ function init(ex) {
         case 'SPNE': 	temp = 4; break;
         case 'Stack': 	temp = 5; break;
         case 'Imperf': 	temp = 6; break;
-        case 'PBE': 	temp = 7; break;
-        case 'Signal':	temp = 8; break;
-        case 'Core': 	temp = 9; break;
-        case 'Shap': 	temp = 10; break;
+        case 'BNE': 	temp = 7; break;
+        case 'PBE': 	temp = 8; break;
+        case 'Signal':	temp = 9; break;
+        case 'Core': 	temp = 10; break;
+        case 'Shap': 	temp = 11; break;
         default: return;
     }
 
@@ -254,6 +255,9 @@ function init(ex) {
             break;  
         case 'Imperf':
             generateImperf();
+			break;
+        case 'BNE':
+            generateBNE();
 			break;
         case 'PBE':
             generatePBE();
@@ -293,6 +297,9 @@ function evaluateAnswer() {
             break;
         case 'Imperf':
             res = evalImperf();
+            break;
+        case 'BNE':
+            res = evalBNE();
             break;
         case 'PBE':
             res = evalPBE();
@@ -414,6 +421,7 @@ const params = {
 params['NE'] = params['WDA'];
 params['Mix'] = params['WDA'];
 params['Imperf'] = params['SPNE'];
+params['BNE'] = params['SPNE'];
 params['Signal'] = params['SPNE'];
 params['Shap'] = params['Core'];
 
@@ -425,6 +433,7 @@ const headers = {
 	'SPNE': "Subgame-perfect Nash equilibrium",
     'Stack': "Stackelberg competition",
     'Imperf': "Imperfect information",
+	'BNE': 'Bayesian Nash equilibrium',
     'PBE': "Perfect Bayesian equilibrium",
     'Signal': "Signaling games",
 	'Core': "The core",
@@ -439,6 +448,7 @@ const descriptions = {
 	'SPNE': "Find a pure-strategy subgame-perfect Nash equilibrium in the game below. Remember: a strategy specifies an action at every decision node for the player.",
     'Stack': "Find the Stackelberg equilibrium in the game below. Use fractions to avoid rounding errors (e.g., 1/3 instead of 0.33).",
 	'Imperf': "Find a pure-strategy subgame-perfect Nash equilibrium in the game below (if one exists). If you're sure there isn't one, move on to a new problem. Remember: a strategy specifies an action at every information set for the player.",
+    'BNE': 'Find a mixed-strategy Bayesian Nash equilibrium in the game below. Nature "draws the matrix" with the given probability. Use fractions to avoid rounding errors (e.g., 1/3 instead of 0.33).',
     'PBE': "Find a mixed-strategy perfect Bayesian equilibrium in the game below. Remember that pure strategies are a special case of mixed strategies. Set the probability to 0 for unused actions (or leave empty). Use fractions to avoid rounding errors (e.g., 1/3 instead of 0.33).",
     'Signal': "Find a pure-strategy perfect Bayesian equilibrium in the signaling game below.",
 	'Core': "Find a core allocation in the cost-sharing game below (if one exists). If you're sure there isn't one, move on to a new problem.",
@@ -464,6 +474,8 @@ const answers = {
 	'SPNE': () => 'Player 1 plays <select id="SPNE_IO"><option disabled selected></option><option>In</option><option>Out</option></select>, <select id="SPNE_A"><option disabled selected></option><option>1</option><option>2</option></select> after A, and <select id="SPNE_B"><option disabled selected></option><option>3</option><option>4</option></select> after B. Player 2 plays <select id="SPNE_IN"><option disabled selected></option><option>A</option><option>B</option></select>.',
 
 	'Imperf': () => 'Player 1 plays <select id="Imp_IO"><option disabled selected></option><option>In</option><option>Out</option></select> and <select id="Imp_1"><option disabled selected></option><option>1</option><option>2</option></select>. Player 2 plays <select id="Imp_2"><option disabled selected></option><option>A</option><option>B</option></select>.',
+
+	'BNE': () => "Row mixes with probabilities <input size=5 id='BNE_1' placeholder='1'> and <input size=5 id='BNE_2' placeholder='2'>, and <input size=5 id='BNE_3' placeholder='3'> and <input size=5 id='BNE_4' placeholder='4'>, respectively. Column mixes with probabilities <input size=5 id='BNE_A' placeholder='A'> and <input size=5 id='BNE_B' placeholder='B'>.",
 
     'PBE': () => {
 		switch (chance) {
@@ -519,6 +531,7 @@ const more = {
     'Mix': "What's the interpretation of this equilibrium?",
 	'SPNE': "How many subgames are there? Can you find a Nash equilibrium that isn't subgame perfect? Warning: This exercise is limited to a particular structure on the game tree, make sure you understand the underlying ideas so you can solve other ones as well.",
     'Stack': "What about profits? Compare to the Cournot model: how much would firm 1 be willing to pay (in the Cournot setting) to get a first-mover advantage?",
+	'BNE': "TBA",
 	'PBE': "How many subgames are there? Can you find an equilibrium that isn't perfect Bayesian? What about subgame perfection? Is there one in which both players mix over all (or at least some) actions? Warning: This exercise is limited to a particular structure on the game tree, make sure you understand the underlying ideas so you can solve other ones as well.",
     'Signal': "Is the equilibrium pooling or separating? Does it work for a larger set of beliefs? Can you find an equilibrium that involves mixed strategies?",
 	'Core': "It's rare that there's a unique core allocation. If there are several here, can you find an expression for the core as a whole? What properties does the game satisfy? What difference would it make when looking at surplus-sharing games instead?",
@@ -818,6 +831,52 @@ function generateImperf () {
     $('instance').removeChild($('instance').lastChild);
     $('instance').innerHTML = '';
     $('instance').appendChild(canv);
+}
+
+// BNE
+
+function generateBNE () {
+
+	function genPair () {
+		return Array.from({ length: 2}, () => 
+			Math.floor(Math.random() * 10)
+			)
+	}
+
+	payoffs = {
+		'1': { 'A': genPair(), 'B': genPair() },
+		'2': { 'A': genPair(), 'B': genPair() },
+		'3': { 'A': genPair(), 'B': genPair() },
+		'4': { 'A': genPair(), 'B': genPair() },
+	}
+
+	var poss = ['1/2', '1/3', '1/4', '1/5', '2/3', '2/5', '3/5', '4/5'];
+	var opp = ['1/2', '2/3', '3/4', '4/5', '1/3', '3/5', '2/5', '1/5'];
+	var indx = Math.floor(Math.random() * poss.length);
+	signProb = poss[indx]; // First game, actions 1 and 2
+	var signOpp = opp[indx];
+
+	// test case
+
+	payoffs = {
+		'1': { 'A': [0,0], 'B': [7,8] },
+		'2': { 'A': [4,6], 'B': [0,5] },
+		'3': { 'A': [4,8], 'B': [3,4] },
+		'4': { 'A': [1,5], 'B': [4,7] },
+	}
+
+	signProb = '2/3';
+	signOpp = '1/3';
+
+	//
+
+	const sp = (i,j) => payoffs[i][j].join(', ');
+
+	inst = '<table class="payoffmatrix"><tr><td></td><td colspan="2">Prob. ' + signProb + '</td><td></td><td></td><td colspan="2">Prob. ' + signOpp + '</td></tr>';
+    inst += '<tr><td></td><td class="heading">A</td><td class="heading">B</td><td width="18px"></td><td></td><td class="heading">A</td><td class="heading">B</td></tr>';
+	inst += '<tr><td class="heading">1</td><td>' + sp(1,'A') + '</td><td>' + sp(1,'B') + '</td><td></td><td class="heading">3</td><td>' + sp(3,'A') + '</td><td>' + sp(3,'B') + '</td></tr>';
+	inst += '<tr><td class="heading">2</td><td>' + sp(2,'A') + '</td><td>' + sp(2,'B') + '</td><td></td><td class="heading">4</td><td>' + sp(4,'A') + '</td><td>' + sp(4,'B') + '</td></tr>';
+	inst += '</table>';
 }
 
 // PBE
@@ -1444,6 +1503,102 @@ function evalImperf() {
 			return false;
 		}
 	}
+	return true;
+}
+
+function evalBNE () {
+	var p1 = textInput('BNE_1');
+	var p2 = textInput('BNE_2');
+	var p3 = textInput('BNE_3');
+	var p4 = textInput('BNE_4');
+	var pA = textInput('BNE_A');
+	var pB = textInput('BNE_B');
+	var pi = fracToDec(signProb);
+	var u1, u2, dev;
+
+	if (!isClose(p1 + p2, 1)) {
+		console.log("Row's left-matrix probabilities don't add up to one");
+		return false;
+	}
+	if (!isClose(p3 + p4, 1)) {
+		console.log("Row's right-matrix probabilities don't add up to one");
+		return false;
+	}
+	if (!isClose(pA + pB, 1)) {
+		console.log("Column's probabilities don't add up to one");
+		return false;
+	}
+
+	// Row left-matrix deviations
+	u1  = p1 * pA * payoffs[1]['A'][0]; 
+	u1 += p1 * pB * payoffs[1]['B'][0]; 
+	u1 += p2 * pA * payoffs[2]['A'][0]; 
+	u1 += p2 * pB * payoffs[2]['B'][0]; 
+
+	dev  = pA * payoffs[1]['A'][0];
+	dev += pB * payoffs[1]['B'][0];
+	if (isLarger(dev, u1)) {
+		console.log('Row deviates to 1');
+		return false;
+	}
+
+	dev  = pA * payoffs[2]['A'][0];
+	dev += pB * payoffs[2]['B'][0];
+	if (isLarger(dev, u1)) {
+		console.log('Row deviates to 2');
+		return false;
+	}
+
+	// Row right-matrix deviations
+	u1  = p3 * pA * payoffs[3]['A'][0]; 
+	u1 += p3 * pB * payoffs[3]['B'][0]; 
+	u1 += p4 * pA * payoffs[4]['A'][0]; 
+	u1 += p4 * pB * payoffs[4]['B'][0]; 
+
+	dev  = pA * payoffs[3]['A'][0];
+	dev += pB * payoffs[3]['B'][0];
+	if (isLarger(dev, u1)) {
+		console.log('Row deviates to 3');
+		return false;
+	}
+
+	dev  = pA * payoffs[4]['A'][0];
+	dev += pB * payoffs[4]['B'][0];
+	if (isLarger(dev, u1)) {
+		console.log('Row deviates to 4');
+		return false;
+	}
+
+	// Column deviations
+	u2  = pi * p1 * pA * payoffs[1]['A'][1]; 
+	u2 += pi * p1 * pB * payoffs[1]['B'][1]; 
+	u2 += pi * p2 * pA * payoffs[2]['A'][1]; 
+	u2 += pi * p2 * pB * payoffs[2]['B'][1]; 
+	u2 += (1-pi) * p3 * pA * payoffs[3]['A'][1]; 
+	u2 += (1-pi) * p3 * pB * payoffs[3]['B'][1]; 
+	u2 += (1-pi) * p4 * pA * payoffs[4]['A'][1]; 
+	u2 += (1-pi) * p4 * pB * payoffs[4]['B'][1]; 
+
+	dev  = pi * p1 * payoffs[1]['A'][1];
+	dev += pi * p2 * payoffs[2]['A'][1];
+	dev += (1-pi) * p3 * payoffs[3]['A'][1];
+	dev += (1-pi) * p4 * payoffs[4]['A'][1];
+
+	if (isLarger(dev, u2)) {
+		console.log('Column deviates to A');
+		return false;
+	}
+
+	dev  = pi * p1 * payoffs[1]['B'][1];
+	dev += pi * p2 * payoffs[2]['B'][1];
+	dev += (1-pi) * p3 * payoffs[3]['B'][1];
+	dev += (1-pi) * p4 * payoffs[4]['B'][1];
+
+	if (isLarger(dev, u2)) {
+		console.log('Column deviates to B');
+		return false;
+	}
+
 	return true;
 }
 

@@ -146,7 +146,7 @@ select:hover {
 .material-icons.md-30 { font-size: 30px; }
 
 .payoffmatrix {
-	margin-left: 25%;
+	margin: auto;
 }
 
 .payoffmatrix td {
