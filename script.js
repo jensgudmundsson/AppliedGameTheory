@@ -30,16 +30,12 @@ for (let i = 0; i < coll.length; i++) {
 
 const $ = id => document.getElementById(id);
 
-const textInput = id => {
-	var arr = $(id).value.split('/');
-	return arr.length === 1 ? +arr[0] : +arr[0] / +arr[1];
-}
 const fracToDec = frac => {
     var arr = frac.split('/');
     return arr.length === 1 ? +arr[0] : +arr[0] / +arr[1];
 }
+const textInput = id => fracToDec($(id).value);
 const letter = j => String.fromCharCode(65 + j);
-const number = j => 1 + j;
 const isClose = (a, b, diff = eps) => Math.abs(a - b) < diff;
 const isLarger = (a, b, diff = eps) => a > b + diff;
 const sum = arr => arr.reduce((a, b) => a + b);
@@ -47,42 +43,10 @@ const toText = x => {
     if (x === 2) return 'two';
     if (x === 3) return 'three';
 }
-
-function options (x) {
-    var n, f, str = '';
-    if (x === 'r') {
-        n = rows;
-        f = number;
-    }
-    else {
-        n = cols;
-        f = letter;
-    }
-    for (let i = 0; i < n; i++) {
-        str += '<option value="' + i + '">' + f(i) + '</option>';
-    }
-    return str;
-}
-
-function inputs (x) {
-    var n, f, t, str = '';
-    if (x === 'r') {
-        n = rows;
-        f = number;
-        t = 'pr';
-    }
-    else {
-        n = cols;
-        f = letter;
-        t = 'pc';
-    }
-    for (let i = 0; i < n; i++) { 
-        str += ' <input size=5 id="' + t + i + '" placeholder="' + f(i) + '">';
-        if (i === n-2 && n === 2) str += ' and ';
-        else if (i === n-2 && n > 2) str += ', and ';
-        else if (i < n-2) str += ', ';
-    }
-    return str;
+const genPair = (low=0,sep=10) => {
+	return Array.from({ length: 2}, () =>
+		Math.floor(low + Math.random() * sep)
+		)
 }
 
 const powerset = () => {
@@ -173,6 +137,26 @@ function feedbackClick () {
 	}
 }
 
+// MOBILE DEVICES
+
+if (window.matchMedia("(max-width: 700px)").matches) {
+	window.onclick = e => {
+		if ($('exerciseType').contains(e.target)) {
+			$('paramList').classList.remove('showMenu');
+			$('exerciseTypeContent').classList.toggle('showMenu');
+		}
+		else if ($('customize').contains(e.target)) {
+			$('exerciseTypeContent').classList.remove('showMenu');
+			$('paramList').classList.toggle('showMenu');
+		}
+		else {
+			$('exerciseTypeContent').classList.remove('showMenu');
+			$('paramList').classList.remove('showMenu');
+		}
+	}
+}
+
+
 // DISPLAY FUNCTIONS
 
 function home () {
@@ -202,10 +186,8 @@ function updateTexts () {
 }
 
 function updateParams() {
-    if ($('rowActions')) {
-        rows = +$('rowActions').value;
-        cols = +$('colActions').value;
-    }
+    if ($('rowActions')) rows = +$('rowActions').value;
+    if ($('colActions')) cols = +$('colActions').value;
     if ($('costType')) costType = $('costType').value;
     if ($('firms')) firms = +$('firms').value;
     if ($('chance')) chance = $('chance').value;
@@ -228,7 +210,6 @@ function init(ex) {
         case 'Signal':	temp = 9; break;
         case 'Core': 	temp = 10; break;
         case 'Shap': 	temp = 11; break;
-        default: return;
     }
 
     if (temp > unlock) return;
@@ -240,81 +221,35 @@ function init(ex) {
     switch (exercise) {
         case 'WDA':
         case 'NE':
-        case 'Mix':
-            payoffs = generatePayoffs();
-            generatePayoffMatrix();
-            break;
-        case 'Cou':
-            generateCournot();
-            break;
-		case 'SPNE':
-			generateSPNE();
-			break;
-        case 'Stack':
-            generateStack();
-            break;  
-        case 'Imperf':
-            generateImperf();
-			break;
-        case 'BNE':
-            generateBNE();
-			break;
-        case 'PBE':
-            generatePBE();
-			break;
-        case 'Signal':
-            generateSignal();
-			break;
+        case 'Mix':		generateMatrix(); break;
+        case 'Cou':		generateCournot(); break;
+		case 'SPNE':	generateSPNE(); break;
+        case 'Stack':	generateStack(); break;  
+        case 'Imperf':	generateImperf(); break;
+        case 'BNE': 	generateBNE(); break;
+        case 'PBE': 	generatePBE(); break;
+        case 'Signal': 	generateSignal(); break;
 		case 'Core':
-		case 'Shap':
-			generateCoalitional();
-			break;
+		case 'Shap': 	generateCoalitional(); break;
     }
     updateTexts();
 }
 
 function evaluateAnswer() {
-    if (exercise === undefined) return;
     var res;
     switch (exercise) {
-        case 'WDA':
-            res = evalWDA();
-            break;
-        case 'NE':
-            res = evalNE();
-            break;
-        case 'Cou':
-            res = evalCou();
-            break;
-        case 'Mix':
-            res = evalMix();
-            break;
-        case 'SPNE':
-            res = evalSPNE();
-            break;
-        case 'Stack':
-            res = evalStack();
-            break;
-        case 'Imperf':
-            res = evalImperf();
-            break;
-        case 'BNE':
-            res = evalBNE();
-            break;
-        case 'PBE':
-            res = evalPBE();
-            break;
-        case 'Signal':
-            res = evalSignal();
-            break;
-		case 'Core':
-			res = evalCore();
-			break;
-		case 'Shap':
-			res = evalShapley();
-			break;
-        case undefined:
-            return;
+        case 'WDA': 	res = evalWDA(); break;
+        case 'NE': 		res = evalNE(); break;
+        case 'Cou': 	res = evalCou(); break;
+        case 'Mix': 	res = evalMix(); break;
+        case 'SPNE': 	res = evalSPNE(); break;
+        case 'Stack': 	res = evalStack(); break;
+        case 'Imperf': 	res = evalImperf(); break;
+        case 'BNE': 	res = evalBNE(); break;
+        case 'PBE': 	res = evalPBE(); break;
+        case 'Signal': 	res = evalSignal(); break;
+		case 'Core': 	res = evalCore(); break;
+		case 'Shap': 	res = evalShapley(); break;
     }
     
     if (armed & res) {
@@ -443,22 +378,55 @@ const headers = {
 const descriptions = {
     'WDA': "Find weakly dominated actions in the game below (if such exist). If you're sure there isn't one, move on to a new problem.",
     'NE': "Find a pure-strategy Nash equilibrium in the game below below (if one exists). If you're sure there isn't one, move on to a new problem.",
-    'Cou': "Find the Cournot equilibrium in the game below. Use fractions to avoid rounding errors (e.g., 1/3 instead of 0.33).",
-    'Mix': "Find a mixed-strategy Nash equilibrium in the game below. Remember that pure strategies are a special case of mixed strategies. Set the probability to 0 for unused actions (or leave empty). Use fractions to avoid rounding errors (e.g., 1/3 instead of 0.33).",
+    'Cou': "Find the Cournot equilibrium in the game below.",
+    'Mix': "Find a mixed-strategy Nash equilibrium in the game below.",
 	'SPNE': "Find a pure-strategy subgame-perfect Nash equilibrium in the game below. Remember: a strategy specifies an action at every decision node for the player.",
-    'Stack': "Find the Stackelberg equilibrium in the game below. Use fractions to avoid rounding errors (e.g., 1/3 instead of 0.33).",
-	'Imperf': "Find a pure-strategy subgame-perfect Nash equilibrium in the game below (if one exists). If you're sure there isn't one, move on to a new problem. Remember: a strategy specifies an action at every information set for the player.",
-    'BNE': 'Find a mixed-strategy Bayesian Nash equilibrium in the game below. Nature "draws the matrix" with the given probability. Use fractions to avoid rounding errors (e.g., 1/3 instead of 0.33).',
-    'PBE': "Find a mixed-strategy perfect Bayesian equilibrium in the game below. Remember that pure strategies are a special case of mixed strategies. Set the probability to 0 for unused actions (or leave empty). Use fractions to avoid rounding errors (e.g., 1/3 instead of 0.33).",
-    'Signal': "Find a pure-strategy perfect Bayesian equilibrium in the signaling game below.",
+    'Stack': "Find the Stackelberg equilibrium in the game below.",
+	'Imperf': "Find a mixed-strategy subgame-perfect Nash equilibrium in the game below. Remember: a strategy specifies a distribution over actions at every information set for the player.",
+    'BNE': "Find a mixed-strategy Bayesian Nash equilibrium in the game below. Nature \"draws the matrix\" with the given probability (think of it as the row player's type).",
+    'PBE': "Find a mixed-strategy perfect Bayesian equilibrium in the game below.",
+    'Signal': "Find a mixed-strategy perfect Bayesian equilibrium in the signaling game below.",
 	'Core': "Find a core allocation in the cost-sharing game below (if one exists). If you're sure there isn't one, move on to a new problem.",
 	'Shap': "Find the Shapley value of the cost-sharing game below.",
 };
 
 const answers = {
-    'WDA': () => "The action <select id='WDA_1'><option selected disabled></option><optgroup label='Row'>" + options('r') + "</optgroup><optgroup label='Column'>" + options('c') + "</optgroup></select> weakly dominates <select id='WDA_2'><option selected disabled></option><optgroup label='Row'>" + options('r') + "</optgroup><optgroup label='Column'>" + options('c') + "</optgroup></select>.",
 
-    'NE': () => "Row plays <select id='NE_row'><option selected disabled></option>" + options('r') + "</select> and column plays <select id='NE_col'><option selected disabled></option>" + options('c') + "</select>.",
+    'WDA': () => {
+		var str;
+		str = "The action <select id='WDA_1'><option selected disabled></option><optgroup label='Row'>";
+		for (let i = 0; i < rows; i++) {
+			str += '<option value="' + i + '">' + (i+1) + '</option>';
+		} 
+		str += "</optgroup><optgroup label='Column'>";
+		for (let j = 0; j < cols; j++) {
+			str += '<option value="' + j + '">' + letter(j) + '</option>';
+		} 
+		str += "</optgroup></select> weakly dominates <select id='WDA_2'><option selected disabled></option><optgroup label='Row'>";
+		for (let i = 0; i < rows; i++) {
+			str += '<option value="' + i + '">' + (i+1) + '</option>';
+		} 
+		str += "</optgroup><optgroup label='Column'>";
+		for (let j = 0; j < cols; j++) {
+			str += '<option value="' + j + '">' + letter(j) + '</option>';
+		} 
+		str += "</optgroup></select>.";
+		return str;
+	},
+
+    'NE': () => {
+		var str;
+		str = "Row plays <select id='NE_row'><option selected disabled></option>";
+		for (let i = 0; i < rows; i++) {
+			str += '<option value="' + i + '">' + (i+1) + '</option>';
+		} 
+		str += "</select> and column plays <select id='NE_col'><option selected disabled></option>";
+		for (let j = 0; j < cols; j++) {
+			str += '<option value="' + j + '">' + letter(j) + '</option>';
+		} 
+		str += "</select>.";
+		return str;
+	},
 
     'Cou': () => {
         var str = 'The equilibrium quantities and price are ';
@@ -469,11 +437,29 @@ const answers = {
         return str;
     },
 
-    'Mix': () => "Row mixes with probabilities " + inputs('r') + ". Column mixes with probabilities " + inputs('c') + ".",
+    'Mix': () => {
+		var str;
+		str = "Row mixes with probabilities ";
+		for (let i = 0; i < rows; i++) { 
+			str += ' <input size=5 id="pr' + i + '" placeholder="' + (i+1) + '">';
+			if (i === rows-2 && rows === 2) str += ' and ';
+			else if (i === rows-2 && rows > 2) str += ', and ';
+			else if (i < rows-2) str += ', ';
+		}
+		str += ". Column mixes with probabilities ";
+		for (let j = 0; j < cols; j++) { 
+			str += ' <input size=5 id="pc' + j + '" placeholder="' + letter(j) + '">';
+			if (j === cols-2 && cols === 2) str += ' and ';
+			else if (j === cols-2 && cols > 2) str += ', and ';
+			else if (j < cols-2) str += ', ';
+		}
+		str += '.';
+		return str;
+	},
 
 	'SPNE': () => 'Player 1 plays <select id="SPNE_IO"><option disabled selected></option><option>In</option><option>Out</option></select>, <select id="SPNE_A"><option disabled selected></option><option>1</option><option>2</option></select> after A, and <select id="SPNE_B"><option disabled selected></option><option>3</option><option>4</option></select> after B. Player 2 plays <select id="SPNE_IN"><option disabled selected></option><option>A</option><option>B</option></select>.',
 
-	'Imperf': () => 'Player 1 plays <select id="Imp_IO"><option disabled selected></option><option>In</option><option>Out</option></select> and <select id="Imp_1"><option disabled selected></option><option>1</option><option>2</option></select>. Player 2 plays <select id="Imp_2"><option disabled selected></option><option>A</option><option>B</option></select>.',
+	'Imperf': () => "Player 1 mixes with probabilities <input size=5 id='Imp_In' placeholder='In'> and <input size=5 id='Imp_Out' placeholder='Out'>, and <input size=5 id='Imp_1' placeholder='1'> and <input size=5 id='Imp_2' placeholder='2'>, respectively. Column mixes with probabilities <input size=5 id='Imp_A' placeholder='A'> and <input size=5 id='Imp_B' placeholder='B'>.",
 
 	'BNE': () => "Row mixes with probabilities <input size=5 id='BNE_1' placeholder='1'> and <input size=5 id='BNE_2' placeholder='2'>, and <input size=5 id='BNE_3' placeholder='3'> and <input size=5 id='BNE_4' placeholder='4'>, respectively. Column mixes with probabilities <input size=5 id='BNE_A' placeholder='A'> and <input size=5 id='BNE_B' placeholder='B'>.",
 
@@ -486,6 +472,8 @@ const answers = {
 		}
 	},
 
+	'Signal': () => "Player 1 mixes with probabilities <input size=5 id='SIG_1' placeholder='1'> and <input size=5 id='SIG_2' placeholder='2'>, and <input size=5 id='SIG_3' placeholder='3'> and <input size=5 id='SIG_4' placeholder='4'>. Player 2 mixes with probabilities <input size=5 id='SIG_A' placeholder='A'> and <input size=5 id='SIG_B' placeholder='B'>, and <input size=5 id='SIG_C' placeholder='C'> and <input size=5 id='SIG_D' placeholder='D'>. Beliefs are <input size=5 id='SIG_p' placeholder='p'> and <input size=5 id='SIG_q' placeholder='q'>.",
+/*
     'Signal': () => {
         function optList (arr) {
             var str = '<option selected disabled></option>';
@@ -494,6 +482,7 @@ const answers = {
         }
         return 'Player 1 plays <select id="SIG_1">' + optList([1,2]) + '</select> at U and <select id="SIG_2">' + optList([3,4]) + '</select> at D. Player 2 plays <select id="SIG_3">' + optList(['A','B']) + '</select> at L and <select id="SIG_4">' + optList(['C','D']) + '</select> at R. Beliefs are <input id="SIG_p" size=5 placeholder="p"> and <input id="SIG_q" size=5 placeholder="q">.';
     },
+	*/
 
 	'Core': () => {
         var str = 'A core allocation assigns costs ';
@@ -533,7 +522,7 @@ const more = {
     'Stack': "What about profits? Compare to the Cournot model: how much would firm 1 be willing to pay (in the Cournot setting) to get a first-mover advantage?",
 	'BNE': "TBA",
 	'PBE': "How many subgames are there? Can you find an equilibrium that isn't perfect Bayesian? What about subgame perfection? Is there one in which both players mix over all (or at least some) actions? Warning: This exercise is limited to a particular structure on the game tree, make sure you understand the underlying ideas so you can solve other ones as well.",
-    'Signal': "Is the equilibrium pooling or separating? Does it work for a larger set of beliefs? Can you find an equilibrium that involves mixed strategies?",
+    'Signal': "Is the equilibrium pooling, separating, or perhaps neither? Does it work for a larger set of beliefs?",
 	'Core': "It's rare that there's a unique core allocation. If there are several here, can you find an expression for the core as a whole? What properties does the game satisfy? What difference would it make when looking at surplus-sharing games instead?",
 	'Shap': "Here, is the Shapley value in the game's core? What difference would it make when looking at surplus-sharing games instead?",
 };
@@ -542,25 +531,19 @@ more['Imperf'] = more['SPNE'];
 
 // EXERCISE FUNCTIONS
 
-// Payoffs
+// Matrix
 
-function generatePayoffs () {
-    return Array.from({ length: rows }, () =>
-        Array.from( { length: cols }, () => 
-            Array.from({ length: 2}, () =>
-                Math.floor(Math.random() * 10)
-                )
-            )
+function generateMatrix() {
+    payoffs = Array.from({ length: rows }, () =>
+        Array.from( { length: cols }, () => genPair() )
         );
-}
 
-function generatePayoffMatrix() {
     inst = '<table class="payoffmatrix"><tr><td></td>';
     for (let j = 0; j < cols; j++) {
         inst += '<td class="heading">' + letter(j) + '</td>';
     }
     for (let i = 0; i < rows; i++) {
-        inst += '</tr><tr><td class="heading">' + number(i) + '</td>';
+        inst += '</tr><tr><td class="heading">' + (i+1) + '</td>';
         for (let j = 0; j < cols; j++) {
             inst += '<td>' + payoffs[i][j].join(', ') + '</td>';
         }
@@ -607,12 +590,6 @@ function generateCournot () {
 // SPNE games
 
 function generateSPNE () {
-
-	function genPair () {
-		return Array.from({ length: 2}, () =>
-			Math.floor(Math.random() * 10)
-			)
-	}
 
     extPayoffs = {
 		'Out': genPair(),
@@ -721,12 +698,6 @@ function generateStack () {
 // Imperfect information games
 
 function generateImperf () {
-
-	function genPair () {
-		return Array.from({ length: 2}, () =>
-			Math.floor(Math.random() * 10)
-			)
-	}
 
     extPayoffs = {
 		'Out': genPair(),
@@ -837,12 +808,6 @@ function generateImperf () {
 
 function generateBNE () {
 
-	function genPair () {
-		return Array.from({ length: 2}, () => 
-			Math.floor(Math.random() * 10)
-			)
-	}
-
 	payoffs = {
 		'1': { 'A': genPair(), 'B': genPair() },
 		'2': { 'A': genPair(), 'B': genPair() },
@@ -856,20 +821,6 @@ function generateBNE () {
 	signProb = poss[indx]; // First game, actions 1 and 2
 	var signOpp = opp[indx];
 
-	// test case
-
-	payoffs = {
-		'1': { 'A': [0,0], 'B': [7,8] },
-		'2': { 'A': [4,6], 'B': [0,5] },
-		'3': { 'A': [4,8], 'B': [3,4] },
-		'4': { 'A': [1,5], 'B': [4,7] },
-	}
-
-	signProb = '2/3';
-	signOpp = '1/3';
-
-	//
-
 	const sp = (i,j) => payoffs[i][j].join(', ');
 
 	inst = '<table class="payoffmatrix"><tr><td></td><td colspan="2">Prob. ' + signProb + '</td><td></td><td></td><td colspan="2">Prob. ' + signOpp + '</td></tr>';
@@ -882,12 +833,6 @@ function generateBNE () {
 // PBE
 
 function generatePBE () {
-
-	function genPair () {
-		return Array.from({ length: 2}, () =>
-			Math.floor(Math.random() * 10)
-			)
-	}
 
     extPayoffs = {
 		'Out': genPair(),
@@ -1084,17 +1029,11 @@ function generatePBE () {
 
 function generateSignal () {
 
-	function genPair () {
-		return Array.from({ length: 2}, () =>
-			Math.floor(10 + Math.random() * 40)
-			)
-	}
-
     extPayoffs = {
-        '1': { 'A': genPair(), 'B': genPair() },
-        '2': { 'C': genPair(), 'D': genPair() },
-        '3': { 'A': genPair(), 'B': genPair() },
-        '4': { 'C': genPair(), 'D': genPair() }
+        '1': { 'A': genPair(10,40), 'B': genPair(10,40) },
+        '2': { 'C': genPair(10,40), 'D': genPair(10,40) },
+        '3': { 'A': genPair(10,40), 'B': genPair(10,40) },
+        '4': { 'C': genPair(10,40), 'D': genPair(10,40) }
     }
 
     var poss = ['1/2', '1/3', '1/4', '1/5', '2/3', '2/5', '3/5', '4/5'];
@@ -1262,7 +1201,6 @@ function evalWDA () {
     }
     var a = $('WDA_1').value;
     var b = $('WDA_2').value;
-    if (a == b) return false;
 	var diff = false;
     if (group(sel1) == 'Row') {
         for (let j = 0; j < cols; j++) {
@@ -1289,13 +1227,13 @@ function evalNE() {
     var outcome = payoffs[a][b];
     for (let i = 0; i < rows; i++) {
         if (outcome[0] < payoffs[i][b][0]) {
-			console.log('Deviation by column');
+			console.log('Row deviates to ' + (i+1));
 			return false;
 		}
     }
     for (let j = 0; j < cols; j++) {
         if (outcome[1] < payoffs[a][j][1]) {
-			console.log('Deviation by row');
+			console.log('Column deviates to ' + letter(j));
 			return false;
 		}
     }
@@ -1313,14 +1251,14 @@ function evalCou() {
     for (let f = 0; f < firms; f++) {
 		let br = (demand['a'] - demand['b'] * (totQ - q[f]) - costs[f]['a']) / (2 * (demand['b'] + costs[f]['b']));
         if (!isClose(q[f], br, .1)) {
-			console.log((f+1) + "isn't playing a best reponse to the others");
+			console.log("Firm " + (f+1) + " deviates to " + br);
 			return false;
 		}
     }
 
     var price = demand['a'] - demand['b'] * totQ;
     if (!isClose(textInput('price'), price)) {
-		console.log('Price is inconsistent with quantities');
+		console.log('Price inconsistent with quantities');
 		return false;
 	}
     return true;
@@ -1328,47 +1266,51 @@ function evalCou() {
 
 function evalMix() {
     var pr = [], pc = [];
-    var probtotal = [0,0];
     for (let i = 0; i < rows; i++) {
         pr[i] = textInput('pr' + i);
-        probtotal[0] += pr[i];
     }
+    if (!isClose(sum(pr), 1)) {
+		console.log("Row's probabilities don't add up to one");
+		return false;
+	}
     for (let j = 0; j < cols; j++) {
         pc[j] = textInput('pc' + j);
-        probtotal[1] += pc[j];
     }
-    if (!isClose(probtotal[0], 1) || !isClose(probtotal[1], 1)) {
-		console.log("Probabilities don't add to one");
-        return false;
-    }
+    if (!isClose(sum(pc), 1)) {
+		console.log("Column's probabilities don't add up to one");
+		return false;
+	}
+
     // Expected payoffs under reported strategies
-    var uRow = 0;
-    var uCol = 0;
+	var u = { 'row': 0, 'col': 0 };
     for (let i = 0; i < rows; i++) {
         for (let j = 0; j < cols; j++) {
-            uRow += pr[i] * pc[j] * payoffs[i][j][0];
-            uCol += pr[i] * pc[j] * payoffs[i][j][1];
+            u['row'] += pr[i] * pc[j] * payoffs[i][j][0];
+            u['col'] += pr[i] * pc[j] * payoffs[i][j][1];
         }
     }
+	
+	var dev;
+
     // Deviations by row
     for (let i = 0; i < rows; i++) {
-        var v = 0;
+        dev = 0;
         for (let j = 0; j < cols; j++) {
-            v += pc[j] * payoffs[i][j][0];
+            dev += pc[j] * payoffs[i][j][0];
         }
-        if (isLarger(v, uRow)) {
-			console.log('Deviation by row');
+        if (isLarger(dev, u['row'])) {
+			console.log('Row deviates to ' + (i+1));
 			return false;
 		}
     }
     // Deviations by col
     for (let j = 0; j < cols; j++) {
-        var v = 0;
+        dev = 0;
         for (let i = 0; i < rows; i++) {
-            v += pr[i] * payoffs[i][j][1];
+            dev += pr[i] * payoffs[i][j][1];
         }
-        if (isLarger(v, uCol)) {
-			console.log('Deviation by column');
+        if (isLarger(dev, u['col'])) {
+			console.log('Column deviates to ' + letter(j));
 			return false;
 		}
     }
@@ -1376,53 +1318,82 @@ function evalMix() {
 }
 
 function evalSPNE() {
-	var io = $('SPNE_IO').value;
-	var s2 = $('SPNE_IN').value;
+	var sIO = $('SPNE_IO').value;
+	var sIn = $('SPNE_IN').value;
 	var sA = $('SPNE_A').value;
 	var sB = $('SPNE_B').value;
+	var dev;
 
-	if (!io || !s2 || !sA || !sB) {
+	if (!sIO || !sIn || !sA || !sB) {
 		console.log('Incomplete answer');
 		return false;
 	}
-	var dev, dev2, dev3;
 
-	// Check from the end, deviation by 1 after A
+	// Deviations by 1 after A
 
-	dev = (sA === '1') ? '2' : '1';
-	if (extPayoffs['In']['A'][dev][0] > extPayoffs['In']['A'][sA][0]) {
-		console.log('Deviation by 1 after A');
+	if (extPayoffs['In']['A'][1][0] > extPayoffs['In']['A'][sA][0]) {
+		console.log("Player 1 deviates to 1 after A");
+		return false;
+	}
+	if (extPayoffs['In']['A'][2][0] > extPayoffs['In']['A'][sA][0]) {
+		console.log("Player 1 deviates to 2 after A");
 		return false;
 	}
 
-	// Deviation by 1 after B
-	dev = (sB === '3') ? '4' : '3';
-	if (extPayoffs['In']['B'][dev][0] > extPayoffs['In']['B'][sB][0]) {
-		console.log('Deviation by 1 after B');
+	// Deviations by 1 after B
+
+	if (extPayoffs['In']['B'][3][0] > extPayoffs['In']['B'][sB][0]) {
+		console.log("Player 1 deviates to 3 after B");
+		return false;
+	}
+	if (extPayoffs['In']['B'][4][0] > extPayoffs['In']['B'][sB][0]) {
+		console.log("Player 1 deviates to 4 after B");
 		return false;
 	}
 
-	// Deviation by 2 after In
-	dev = (s2 === 'A') ? 'B' : 'A';
-	dev2 = (dev === 'A') ? sA : sB;
-	dev3 = (s2 === 'A') ? sA : sB;
+	// Deviations by 2 after In
 
-	if (extPayoffs['In'][dev][dev2][1] > extPayoffs['In'][s2][dev3][1]) {
-		console.log('Deviation by 2 after In');
+	dev = (sIn === 'A') ? sA : sB;
+	if (extPayoffs['In']['A'][sA][1] > extPayoffs['In'][sIn][dev][1]) {
+		console.log("Player 2 deviates to A after In");
 		return false;
 	}
 
-	// Deviation by 1 at the start
-	dev = (s2 === 'A') ? sA : sB;
-	if (io === 'Out') {
-		if (extPayoffs['In'][s2][dev][0] > extPayoffs['Out'][0]) {
-			console.log('Deviation by 1 to In');
+	if (extPayoffs['In']['B'][sB][1] > extPayoffs['In'][sIn][dev][1]) {
+		console.log("Player 2 deviates to B after In");
+		return false;
+	}
+
+	// Deviations by 1 at the start
+
+	var u;
+	if (sIO === 'Out') u = extPayoffs['Out'][0];
+	else {
+		dev = (sIn === 'A') ? sA : sB;
+		u = extPayoffs['In'][sIn][dev][0];
+	}
+
+	if (extPayoffs['Out'][0] > u) {
+		console.log("Player 1 deviates to Out");
+		return false;
+	}
+	if (sIn === 'A') {
+		if (extPayoffs['In'][sIn][1][0] > u) {
+			console.log("Player 1 deviates to In and 1 after A");
+			return false;
+		}
+		if (extPayoffs['In'][sIn][2][0] > u) {
+			console.log("Player 1 deviates to In and 2 after A");
 			return false;
 		}
 	}
 	else {
-		if (extPayoffs['Out'][0] > extPayoffs['In'][s2][dev][0]) {
-			console.log('Deviation by 1 to Out');
+		if (extPayoffs['In'][sIn][3][0] > u) {
+			console.log("Player 1 deviates to In and 3 after A");
+			return false;
+		}
+		if (extPayoffs['In'][sIn][4][0] > u) {
+			console.log("Player 1 deviates to In and 4 after A");
 			return false;
 		}
 	}
@@ -1435,7 +1406,6 @@ function evalStack() {
     for (let f = 0; f < firms; f++) {
         q.push(textInput('qty' + f));
     }
-    var totQ = sum(q);
 
     let br = [];
     if (firms === 2) {
@@ -1450,59 +1420,122 @@ function evalStack() {
 
     for (let f = 0; f < firms; f++) {
         if (!isClose(q[f], br[f], .1)) {
-			console.log((f+1) + "isn't playing a best respons to the others");
+			console.log('Firm ' + (f+1) + " deviates to " + br[f]);
 			return false;
 		}
     }
 
-    var price = demand['a'] - demand['b'] * totQ;
+    var price = demand['a'] - demand['b'] * sum(q);
     if (!isClose(textInput('price'), price)) {
-		console.log('Price is inconsistent with quantities');
+		console.log('Price inconsistent with quantities');
 		return false;
 	}
     return true;
 }
 
-function evalImperf() {
-	var io = $('Imp_IO').value;
-	var s1 = $('Imp_1').value;
-	var s2 = $('Imp_2').value;
+function evalImperf () {
+	var pIn = textInput('Imp_In');
+	var pOut = textInput('Imp_Out');
+	var p1 = textInput('Imp_1');
+	var p2 = textInput('Imp_2');
+	var pA = textInput('Imp_A');
+	var pB = textInput('Imp_B');
+	var u, dev;
 
-	if (!io || !s1 || !s2) return false;
-	var dev;
-
-	// Check from the end, deviation by 1 in simultaneous moves
-	dev = (s1 === '1') ? '2' : '1';
-	if (extPayoffs['In'][s2][dev][0] > extPayoffs['In'][s2][s1][0]) {
-		console.log('Deviation by 1 in simultaneous moves');
+	if (!isClose(pIn + pOut, 1)) {
+		console.log("Player 1's In/Out probabilities don't add up to one");
+		return false;
+	}
+	if (!isClose(p1 + p2, 1)) {
+		console.log("Player 1's 1/2 probabilities don't add up to one");
+		return false;
+	}
+	if (!isClose(pA + pB, 1)) {
+		console.log("Player 2's probabilities don't add up to one");
 		return false;
 	}
 
-	// Deviation by 2 in simultaneous moves
-	dev = (s2 === 'A') ? 'B' : 'A';
-	if (extPayoffs['In'][dev][s1][1] > extPayoffs['In'][s2][s1][1]) {
-		console.log(s1,s2,dev);
-		console.log('Deviation by 2 in simultaneous moves')
+	// Deviations by 1 after In
+
+	u = 0;
+	u += pA * p1 * extPayoffs['In']['A'][1][0];
+	u += pA * p2 * extPayoffs['In']['A'][2][0];
+	u += pB * p1 * extPayoffs['In']['B'][1][0];
+	u += pB * p2 * extPayoffs['In']['B'][2][0];
+
+	dev = 0;
+	dev += pA * extPayoffs['In']['A'][1][0];
+	dev += pB * extPayoffs['In']['B'][1][0];
+	if (isLarger(dev, u)) {
+		console.log('Player 1 deviates to 1 after In');
 		return false;
 	}
 
-	// Deviation by 1 at the start
-	if (io === 'Out') {
-		if (extPayoffs['In'][s2]['1'][0] > extPayoffs['Out'][0]) {
-			console.log('Deviation by 1 to In, 1');
-			return false;
-		}
-		if (extPayoffs['In'][s2]['2'][0] > extPayoffs['Out'][0]) {
-			console.log('Deviation by 1 to In, 2');
-			return false;
-		}
+	dev = 0;
+	dev += pA * extPayoffs['In']['A'][2][0];
+	dev += pB * extPayoffs['In']['B'][2][0];
+	if (isLarger(dev, u)) {
+		console.log('Player 1 deviates to 2 after In');
+		return false;
 	}
-	else {
-		if (extPayoffs['Out'][0] > extPayoffs['In'][s2][s1][0]) {
-			console.log('Deviation by 1 to Out');
-			return false;
-		}
+
+	// Deviations by 2 after In
+
+	u = 0;
+	u += pA * p1 * extPayoffs['In']['A'][1][1];
+	u += pA * p2 * extPayoffs['In']['A'][2][1];
+	u += pB * p1 * extPayoffs['In']['B'][1][1];
+	u += pB * p2 * extPayoffs['In']['B'][2][1];
+
+	dev = 0;
+	dev += p1 * extPayoffs['In']['A'][1][1];
+	dev += p2 * extPayoffs['In']['A'][2][1];
+	if (isLarger(dev, u)) {
+		console.log('Player 2 deviates to A');
+		return false;
 	}
+
+	dev = 0;
+	dev += p1 * extPayoffs['In']['B'][1][1];
+	dev += p2 * extPayoffs['In']['B'][2][1];
+	if (isLarger(dev, u)) {
+		console.log('Player 2 deviates to B');
+		return false;
+	}
+
+	// Deviations by 1 at the start
+
+	u = 0;
+	u += pOut * extPayoffs['Out'][0];
+	u += pIn * pA * p1 * extPayoffs['In']['A'][1][0];
+	u += pIn * pA * p2 * extPayoffs['In']['A'][2][0];
+	u += pIn * pB * p1 * extPayoffs['In']['B'][1][0];
+	u += pIn * pB * p2 * extPayoffs['In']['B'][2][0];
+
+	dev = extPayoffs['Out'][0];
+	if (isLarger(dev, u)) {
+		console.log('Player 1 deviates to Out');
+		return false;
+	}
+
+	dev = 0;
+	dev += pA * extPayoffs['In']['A'][1][0];
+	dev += pB * extPayoffs['In']['B'][1][0];
+
+	if (isLarger(dev, u)) {
+		console.log('Player 1 deviates to In and 1');
+		return false;
+	}
+
+	dev = 0;
+	dev += pA * extPayoffs['In']['A'][2][0];
+	dev += pB * extPayoffs['In']['B'][2][0];
+
+	if (isLarger(dev, u)) {
+		console.log('Player 1 deviates to In and 2');
+		return false;
+	}
+
 	return true;
 }
 
@@ -1514,7 +1547,7 @@ function evalBNE () {
 	var pA = textInput('BNE_A');
 	var pB = textInput('BNE_B');
 	var pi = fracToDec(signProb);
-	var u1, u2, dev;
+	var u = {}, dev;
 
 	if (!isClose(p1 + p2, 1)) {
 		console.log("Row's left-matrix probabilities don't add up to one");
@@ -1530,71 +1563,74 @@ function evalBNE () {
 	}
 
 	// Row left-matrix deviations
-	u1  = p1 * pA * payoffs[1]['A'][0]; 
-	u1 += p1 * pB * payoffs[1]['B'][0]; 
-	u1 += p2 * pA * payoffs[2]['A'][0]; 
-	u1 += p2 * pB * payoffs[2]['B'][0]; 
+	u['row'] = 0;
+	u['row'] += p1 * pA * payoffs[1]['A'][0]; 
+	u['row'] += p1 * pB * payoffs[1]['B'][0]; 
+	u['row'] += p2 * pA * payoffs[2]['A'][0]; 
+	u['row'] += p2 * pB * payoffs[2]['B'][0]; 
 
 	dev  = pA * payoffs[1]['A'][0];
 	dev += pB * payoffs[1]['B'][0];
-	if (isLarger(dev, u1)) {
+	if (isLarger(dev, u['row'])) {
 		console.log('Row deviates to 1');
 		return false;
 	}
 
 	dev  = pA * payoffs[2]['A'][0];
 	dev += pB * payoffs[2]['B'][0];
-	if (isLarger(dev, u1)) {
+	if (isLarger(dev, u['row'])) {
 		console.log('Row deviates to 2');
 		return false;
 	}
 
 	// Row right-matrix deviations
-	u1  = p3 * pA * payoffs[3]['A'][0]; 
-	u1 += p3 * pB * payoffs[3]['B'][0]; 
-	u1 += p4 * pA * payoffs[4]['A'][0]; 
-	u1 += p4 * pB * payoffs[4]['B'][0]; 
+	u['row'] = 0;
+	u['row'] += p3 * pA * payoffs[3]['A'][0]; 
+	u['row'] += p3 * pB * payoffs[3]['B'][0]; 
+	u['row'] += p4 * pA * payoffs[4]['A'][0]; 
+	u['row'] += p4 * pB * payoffs[4]['B'][0]; 
 
 	dev  = pA * payoffs[3]['A'][0];
 	dev += pB * payoffs[3]['B'][0];
-	if (isLarger(dev, u1)) {
+	if (isLarger(dev, u['row'])) {
 		console.log('Row deviates to 3');
 		return false;
 	}
 
 	dev  = pA * payoffs[4]['A'][0];
 	dev += pB * payoffs[4]['B'][0];
-	if (isLarger(dev, u1)) {
+	if (isLarger(dev, u['row'])) {
 		console.log('Row deviates to 4');
 		return false;
 	}
 
 	// Column deviations
-	u2  = pi * p1 * pA * payoffs[1]['A'][1]; 
-	u2 += pi * p1 * pB * payoffs[1]['B'][1]; 
-	u2 += pi * p2 * pA * payoffs[2]['A'][1]; 
-	u2 += pi * p2 * pB * payoffs[2]['B'][1]; 
-	u2 += (1-pi) * p3 * pA * payoffs[3]['A'][1]; 
-	u2 += (1-pi) * p3 * pB * payoffs[3]['B'][1]; 
-	u2 += (1-pi) * p4 * pA * payoffs[4]['A'][1]; 
-	u2 += (1-pi) * p4 * pB * payoffs[4]['B'][1]; 
+	u['col'] = 0;
+	u['col'] += pi     * p1 * pA * payoffs[1]['A'][1]; 
+	u['col'] += pi     * p1 * pB * payoffs[1]['B'][1]; 
+	u['col'] += pi     * p2 * pA * payoffs[2]['A'][1]; 
+	u['col'] += pi     * p2 * pB * payoffs[2]['B'][1]; 
+	u['col'] += (1-pi) * p3 * pA * payoffs[3]['A'][1]; 
+	u['col'] += (1-pi) * p3 * pB * payoffs[3]['B'][1]; 
+	u['col'] += (1-pi) * p4 * pA * payoffs[4]['A'][1]; 
+	u['col'] += (1-pi) * p4 * pB * payoffs[4]['B'][1]; 
 
-	dev  = pi * p1 * payoffs[1]['A'][1];
-	dev += pi * p2 * payoffs[2]['A'][1];
+	dev  = pi     * p1 * payoffs[1]['A'][1];
+	dev += pi     * p2 * payoffs[2]['A'][1];
 	dev += (1-pi) * p3 * payoffs[3]['A'][1];
 	dev += (1-pi) * p4 * payoffs[4]['A'][1];
 
-	if (isLarger(dev, u2)) {
+	if (isLarger(dev, u['col'])) {
 		console.log('Column deviates to A');
 		return false;
 	}
 
-	dev  = pi * p1 * payoffs[1]['B'][1];
-	dev += pi * p2 * payoffs[2]['B'][1];
+	dev  = pi     * p1 * payoffs[1]['B'][1];
+	dev += pi     * p2 * payoffs[2]['B'][1];
 	dev += (1-pi) * p3 * payoffs[3]['B'][1];
 	dev += (1-pi) * p4 * payoffs[4]['B'][1];
 
-	if (isLarger(dev, u2)) {
+	if (isLarger(dev, u['col'])) {
 		console.log('Column deviates to B');
 		return false;
 	}
@@ -1618,13 +1654,13 @@ function evalPBE() {
 	var dev;
 
 	if (!isClose(pA + pB, 1)) {
-		console.log("Player 2's probabilities don't add to one");
+		console.log("Player 2's probabilities don't add up to one");
 		return false;
 	}
 
 	if (chance === 'No') {
 		if (!isClose(p1 + p2 + pOut, 1)) {
-			console.log("Player 1's probabilities don't add to one");
+			console.log("Player 1's probabilities don't add up to one");
 			return false;
 		}
 	
@@ -1637,19 +1673,19 @@ function evalPBE() {
 	
 		dev = pA * extPayoffs['1']['A'][0] + pB * extPayoffs['1']['B'][0];
 		if (isLarger(dev, u1)) {
-			console.log('Deviation by player 1 to 1');
+			console.log('Player 1 deviates to 1');
 			return false;
 		}
 	
 		dev = pA * extPayoffs['2']['A'][0] + pB * extPayoffs['2']['B'][0];
 		if (isLarger(dev, u1)) {
-			console.log('Deviation by player 1 to 2');
+			console.log('Player 1 deviates to 2');
 			return false;
 		}
 	
 		dev = extPayoffs['Out'][0];
 		if (isLarger(dev, u1)) {
-			console.log('Deviation by player 1 to Out');
+			console.log('Player 1 deviates to Out');
 			return false;
 		}
 	
@@ -1657,13 +1693,13 @@ function evalPBE() {
 	
 		dev = p1 * extPayoffs['1']['A'][1] + p2 * extPayoffs['2']['A'][1] + pOut * extPayoffs['Out'][1];
 		if (isLarger(dev, u2)) {
-			console.log('Deviation by player 2 to A');
+			console.log('Player 2 deviates to A');
 			return false;
 		}
 	
 		dev = p1 * extPayoffs['1']['B'][1] + p2 * extPayoffs['2']['B'][1] + pOut * extPayoffs['Out'][1];
 		if (isLarger(dev, u2)) {
-			console.log('Deviation by player 2 to B');
+			console.log('Player 2 deviates to B');
 			return false;
 		}
 	
@@ -1673,13 +1709,13 @@ function evalPBE() {
 		
 		dev = p * extPayoffs['1']['A'][1] + (1-p) * extPayoffs['2']['A'][1];
 		if (isLarger(dev, u2)) {
-			console.log('Inner deviation by player 2 to A');
+			console.log('Player 2 deviates to A');
 			return false;
 		}
 	
 		dev = p * extPayoffs['1']['B'][1] + (1-p) * extPayoffs['2']['B'][1];
 		if (isLarger(dev, u2)) {
-			console.log('Inner deviation by player 2 to B');
+			console.log('Player 2 deviates to B');
 			return false;
 		}
 	
@@ -1692,7 +1728,7 @@ function evalPBE() {
 	}
 	else {
 		if (!isClose(pIn + pOut, 1)) {
-			console.log("Player 1's probabilities don't add to one");
+			console.log("Player 1's probabilities don't add up to one");
 			return false;
 		}
 	
@@ -1705,13 +1741,13 @@ function evalPBE() {
 
 		dev = pA * extPayoffs[2]['A'][0] + pB * extPayoffs[2]['B'][0];
 		if (isLarger(dev, u1)) {
-			console.log('Deviation by player 1 to In');
+			console.log('Player 1 deviates to In');
 			return false;
 		}
 	
 		dev = extPayoffs['Out'][0];
 		if (isLarger(dev, u1)) {
-			console.log('Deviation by player 1 to Out');
+			console.log('Player 1 deviates to Out');
 			return false;
 		}
 	
@@ -1719,13 +1755,13 @@ function evalPBE() {
 	
 		dev = (1-pi) * extPayoffs[1]['A'][1] + pi * pIn * extPayoffs[2]['A'][1] + pi * pOut * extPayoffs['Out'][1];
 		if (isLarger(dev, u2)) {
-			console.log('Deviation by player 2 to A');
+			console.log('Player 2 deviates to A');
 			return false;
 		}
 	
 		dev = (1-pi) * extPayoffs[1]['B'][1] + pi * pIn * extPayoffs[2]['B'][1] + pi * pOut * extPayoffs['Out'][1];
 		if (isLarger(dev, u2)) {
-			console.log('Deviation by player 2 to B');
+			console.log('Player 2 deviates to B');
 			return false;
 		}
 	
@@ -1744,105 +1780,160 @@ function evalPBE() {
 }
 
 function evalSignal () {
-    var p1, p2, p1dev, p2dev, outcome, dev;
-    var p = $('SIG_p').value;
-    var q = $('SIG_q').value;
+	var p1 = textInput('SIG_1');
+	var p2 = textInput('SIG_2');
+	var p3 = textInput('SIG_3');
+	var p4 = textInput('SIG_4');
+	var pA = textInput('SIG_A');
+	var pB = textInput('SIG_B');
+	var pC = textInput('SIG_C');
+	var pD = textInput('SIG_D');
+	var p = textInput('SIG_p');
+	var q = textInput('SIG_q');
+	var pi = fracToDec(signProb);
+	var u, dev;
 
-    var actions = {
-        'U': $('SIG_1').value, 
-        'D': $('SIG_2').value,
-        'L': $('SIG_3').value,
-        'R': $('SIG_4').value
-    }
-
-    if (!p || !q || !actions['U'] || !actions['D'] || !actions['L'] || !actions['R']) {
-		console.log('Incomplete answer');
-        return false;
-    }
-
-    // U
-    p1 = actions['U'];
-    p2 = (p1 === '1') ? $('SIG_3').value : $('SIG_4').value;
-    outcome = extPayoffs[p1][p2];
-
-    // Player 1 deviation at U
-    p1dev = (p1 === '1') ? '2' : '1';
-    p2dev = (p1dev === '1') ? actions['L'] : actions['R'];
-    dev = extPayoffs[p1dev][p2dev];
-    if (outcome[0] < dev[0]) {
-		console.log('Deviation by 1 at U');
+	if (!isClose(p1 + p2, 1)) {
+		console.log("Player 1's probabilities at U don't add up to one");
 		return false;
 	}
 
-    // D
-    p1 = actions['D'];
-    p2 = (p1 === '3') ? actions['L'] : actions['R'];
-    outcome = extPayoffs[p1][p2];
-
-    // Player 1 deviation at D
-    p1dev = (p1 === '3') ? '4' : '3';
-    p2dev = (p1dev === '3') ? actions['L'] : actions['R'];
-    dev = extPayoffs[p1dev][p2dev];
-    if (outcome[0] < dev[0]) {
-		console.log('Deviation by 1 at D');
+	if (!isClose(p3 + p4, 1)) {
+		console.log("Player 1's probabilities at D don't add up to one");
 		return false;
 	}
 
-    // Player 2 deviation at L
-    p = textInput('SIG_p');
-    p2 = actions['L'];
-    p2dev = (p2 === 'A') ? 'B' : 'A';
-    outcome = p * extPayoffs[1][p2][1] + (1-p) * extPayoffs[3][p2][1];
-    dev = p * extPayoffs[1][p2dev][1] + (1-p) * extPayoffs[3][p2dev][1];
-    if (isLarger(dev, outcome)) {
-		console.log('Deviation by 2 at L');
+	if (!isClose(pA + pB, 1)) {
+		console.log("Player 2's probabilities at L don't add up to one");
 		return false;
 	}
 
-    // Player 2 deviation at R
-	q = textInput('SIG_q');
-    p2 = actions['R'];
-    p2dev = (p2 === 'C') ? 'D' : 'C';
-    outcome = q * extPayoffs[2][p2][1] + (1-q) * extPayoffs[4][p2][1];
-    dev = q * extPayoffs[2][p2dev][1] + (1-q) * extPayoffs[4][p2dev][1];
-    if (isLarger(dev, outcome)) {
-		console.log('Deviation by 2 at R');
+	if (!isClose(pC + pD, 1)) {
+		console.log("Player 2's probabilities at R don't add up to one");
 		return false;
 	}
 
-    // Beliefs
+	// Deviations by 1 at U
 
-    // Separating
+	u = 0;
+	u += p1 * pA * extPayoffs[1]['A'][0];
+	u += p1 * pB * extPayoffs[1]['B'][0];
+	u += p2 * pC * extPayoffs[2]['C'][0];
+	u += p2 * pD * extPayoffs[2]['D'][0];
 
-    if (actions['U'] == '1' && actions['D'] == '4') {
-        if (!isClose(p, 1) || !isClose(q, 0)) {
-			console.log('Incorrect beliefs');
+	dev = 0;
+	dev += pA * extPayoffs[1]['A'][0];
+	dev += pB * extPayoffs[1]['B'][0];
+
+	if (isLarger(dev, u)) {
+		console.log("Player 1 deviates to 1 at U");
+		return false;
+	}
+
+	dev = 0;
+	dev += pC * extPayoffs[2]['C'][0];
+	dev += pD * extPayoffs[2]['D'][0];
+
+	if (isLarger(dev, u)) {
+		console.log("Player 1 deviates to 2 at U");
+		return false;
+	}
+
+	// Deviations by 1 at D
+
+	u = 0;
+	u += p3 * pA * extPayoffs[3]['A'][0];
+	u += p3 * pB * extPayoffs[3]['B'][0];
+	u += p4 * pC * extPayoffs[4]['C'][0];
+	u += p4 * pD * extPayoffs[4]['D'][0];
+
+	dev = 0;
+	dev += pA * extPayoffs[3]['A'][0];
+	dev += pB * extPayoffs[3]['B'][0];
+
+	if (isLarger(dev, u)) {
+		console.log("Player 1 deviates to 3 at D");
+		return false;
+	}
+
+	dev = 0;
+	dev += pC * extPayoffs[4]['C'][0];
+	dev += pD * extPayoffs[4]['D'][0];
+
+	if (isLarger(dev, u)) {
+		console.log("Player 1 deviates to 4 at D");
+		return false;
+	}
+
+	// Deviations by 2 at L
+
+	u = 0;
+	u += p     * pA * extPayoffs[1]['A'][1];
+	u += p     * pB * extPayoffs[1]['B'][1];
+	u += (1-p) * pA * extPayoffs[3]['A'][1];
+	u += (1-p) * pB * extPayoffs[3]['B'][1];
+
+	dev = 0;
+	dev += p     * extPayoffs[1]['A'][1];
+	dev += (1-p) * extPayoffs[3]['A'][1];
+
+	if (isLarger(dev, u)) {
+		console.log("Player 2 deviates to A at L");
+		return false;
+	}
+
+	dev = 0;
+	dev += p     * extPayoffs[1]['B'][1];
+	dev += (1-p) * extPayoffs[3]['B'][1];
+
+	if (isLarger(dev, u)) {
+		console.log("Player 2 deviates to B at L");
+		return false;
+	}
+
+	// Deviations by 2 at R
+
+	u = 0;
+	u += q     * pC * extPayoffs[2]['C'][1];
+	u += q     * pD * extPayoffs[2]['D'][1];
+	u += (1-q) * pC * extPayoffs[4]['C'][1];
+	u += (1-q) * pD * extPayoffs[4]['D'][1];
+
+	dev = 0;
+	dev += q     * extPayoffs[2]['C'][1];
+	dev += (1-q) * extPayoffs[4]['C'][1];
+
+	if (isLarger(dev, u)) {
+		console.log("Player 2 deviates to C at R");
+		return false;
+	}
+
+	dev = 0;
+	dev += q     * extPayoffs[2]['D'][1];
+	dev += (1-q) * extPayoffs[4]['D'][1];
+
+	if (isLarger(dev, u)) {
+		console.log("Player 2 deviates to D at R");
+		return false;
+	}
+
+	// Consistent beliefs
+
+	if (p1 + p3 > 0) {
+		if (!isClose(p, pi * p1 / (pi * p1 + (1-pi) * p3))) {
+			console.log('Belief p inconsistent');
 			return false;
 		}
-    }
-    if (actions['U'] == '2' && actions['D'] == '3') {
-        if (!isClose(p, 0) || !isClose(q, 1)) {
-			console.log('Incorrect beliefs');
-			return false;
-		}
-    }
+	}
 
-    // Pooling
+	if (p2 + p4 > 0) {
+		if (!isClose(q, pi * p2 / (pi * p2 + (1-pi) * p4))) {
+			console.log('Belief q inconsistent');
+			return false;
+		}
+	}
 
-    if (actions['U'] == '1' && actions['D'] == '3') {
-        if (!isClose(p, fracToDec(signProb))) {
-			console.log('Incorrect beliefs');
-			return false;
-		}
-    }   
-    if (actions['U'] == '2' && actions['D'] == '4') {
-        if (!isClose(q, fracToDec(signProb))) {
-			console.log('Incorrect beliefs');
-			return false;
-		}
-    }   
-    
-    return true;
+	return true;
 }
 
 function evalCore () {
@@ -1858,13 +1949,13 @@ function evalCore () {
 		x.forEach(i => tot += resp[i-1]);
 		if (x.length === players) {
 			if (!isClose(tot, worth[x])) {
-				console.log("Doesn't add up c(N)");
+				console.log("Allocation doesn't add up to c(N)");
 				isCore = false;
 			}
 		}
 		else {
 			if (isLarger(tot, worth[x])) {
-				console.log(x + 'blocks');
+				console.log('Coalition ' + x + ' blocks');
 				isCore = false;
 			}
 		}
@@ -1912,7 +2003,7 @@ function evalShapley () {
 
 	for (let i = 0; i < players; i++) {
 		if (!isClose(resp[i], tot[i])) {
-			console.log((i+1) + "isn't correct");
+			console.log('Cost assigned player ' + (i+1) + " isn't correct");
 			return false;
 		}
 	}

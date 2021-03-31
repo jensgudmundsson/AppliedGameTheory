@@ -14,10 +14,10 @@
 
 
         <div id='menu'> 
-            <div class="menu-item">
+            <div id='exerciseType' class="menu-item">
 				Exercise type
 				<i class="fa fa-caret-down"></i>
-                <div class="menu-item-content">
+                <div id='exerciseTypeContent' class="menu-item-content">
 
                     <a href="#" onclick="init('WDA')"><span class="text">Weakly dominated actions</span><span id='navWDA' class="material-icons icon"></span></a> 
 
@@ -45,7 +45,7 @@
 
                 </div>
             </div> 
-            <div class="menu-item">
+            <div id='customize' class="menu-item">
 				Customize
 				<i class="fa fa-caret-down"></i>
                 <div id="paramList" class="menu-item-content custom"></div>
@@ -63,7 +63,8 @@
             <div>
                 Here you'll get endless practice solving some of the games covered in the course.
                 Answers are automatically checked: we won't tell you the correct answer, but we will tell you whether <em>your</em> answer is correct.
-                To get started, choose "Weakly dominated actions" under "Exercise type" in the menu above.
+				As always, submit <u>complete answers</u> and <u>use fractions</u> to avoid rounding errors (e.g., 1/3 instead of 0.33).
+                To get started, choose "Weakly dominated actions" under "Exercise type" above.
                 Have fun!
             </div>
             <div class="heading space">
@@ -80,19 +81,19 @@
                     It's too easy!
                 </button>
                 <div class="content">
-                    <p>Customize the game, say by increasing the number of players or actions, for a bigger challenge.</p>
+                    <p>Customize the game, say by increasing the number of players or actions, for a bigger challenge. Finding mixed equilibria is typically harder than finding pure-strategy ones.  </p>
+                </div>
+                <button type="button" class="collapsible">
+                    It's too hard!
+                </button>
+                <div class="content">
+                    <p>Remember that pure strategies are a special case of mixed strategies, so it may help to look first for pure-strategy solutions. Usually you can learn more about what you got wrong in the <a class="innerLinks" style="margin-left: 0" target='_blank' href="https://webmasters.stackexchange.com/questions/8525/how-do-i-open-the-javascript-console-in-different-browsers">console</a>. Suspect a bug? Report it by clicking "Give feedback" next to the exercise heading.</p>
                 </div>
                 <button type="button" class="collapsible">
                     There's too little variety.
                 </button>
                 <div class="content">
                     <p>Some exercises types lend themselves better to this format than others. But what's here is hopefully still better than nothing!</p>
-                </div>
-                <button type="button" class="collapsible">
-                    Something isn't working as expected.
-                </button>
-                <div class="content">
-                    <p>Make sure to give complete answers. Use fractions to avoid rounding errors (e.g., 1/3 instead of 0.33). Still doesn't work? Let us know by clicking "Give feedback" next to the exercise heading.</p>
                 </div>
                 <button type="button" class="collapsible">
                     Will there be exercises on ..
@@ -104,7 +105,7 @@
 					The website works poorly on ..
                 </button>
                 <div class="content">
-                    <p>Some things may work worse on touch screens, but it's been tested on Safari, Chrome, Firefox, and Edge. Still, you're more than welcome to submit feedback to jg at ifro dot ku dot dk.</p>
+                    <p>It's been tested on Safari, Chrome, Firefox, and Edge. Still, you're more than welcome to submit feedback to jg at ifro dot ku dot dk.</p>
                 </div>
             </div> 
         </div>

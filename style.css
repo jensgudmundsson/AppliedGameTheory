@@ -27,15 +27,30 @@ body {
 	padding: 18px;
 }
 
-.menu-item:hover .menu-item-content, .menu-item:active .menu-item-content, .menu-item:focus .menu-item-content {
-	-webkit-transform: perspective(400) rotate3d(0,0,0,0deg);
-	-moz-transform: perspective(400) rotate3d(0,0,0,0deg);
-	-ms-transform: perspective(400) rotate3d(0,0,0,0deg);
-	-o-transform: perspective(400) rotate3d(0,0,0,0deg);
-	transform: perspective(400) rotate3d(0,0,0,0deg);
+@media only screen and (min-width: 769px) { 
+	.menu-item:hover .menu-item-content {
+		-webkit-transform: perspective(400) rotate3d(0,0,0,0deg);
+		-moz-transform: perspective(400) rotate3d(0,0,0,0deg);
+		-ms-transform: perspective(400) rotate3d(0,0,0,0deg);
+		-o-transform: perspective(400) rotate3d(0,0,0,0deg);
+		transform: perspective(400) rotate3d(0,0,0,0deg);
+	
+		max-height: 1000px;
+		visibility: visible;
+	}
+}
 
-	max-height: 1000px;
-	visibility: visible;
+@media only screen and (max-width: 768px) {
+	.menu-item-content.showMenu {
+		-webkit-transform: perspective(400) rotate3d(0,0,0,0deg);
+		-moz-transform: perspective(400) rotate3d(0,0,0,0deg);
+		-ms-transform: perspective(400) rotate3d(0,0,0,0deg);
+		-o-transform: perspective(400) rotate3d(0,0,0,0deg);
+		transform: perspective(400) rotate3d(0,0,0,0deg);
+	
+		max-height: 1000px;
+		visibility: visible;
+	}
 }
 
 .menu-item-content {
