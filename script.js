@@ -518,8 +518,8 @@ const answers = {
 answers['Stack'] = answers['Cou'];
 
 const more = {
-    'WDA': "Are there more than one dominated action? What about strictly dominated actions? What about iterated elimination of dominated actions?",
-    'NE': "Are there more than one equilibrium? Is the equilibrium strict or weak? If there are several, does one of them stand out?",
+    'WDA': "Is there more than one dominated action? What about strictly dominated actions? What about iterated elimination of dominated actions?",
+    'NE': "Is there more than one equilibrium? Is the equilibrium strict or weak? If there are several, does one of them stand out?",
     'Cou': "What about profits? What if the firms chose to collude? (What would you use as cost function?) What's the consumer surplus?",
     'Mix': "What's the interpretation of this equilibrium?",
 	'SPNE': "How many subgames are there? Can you find a Nash equilibrium that isn't subgame perfect? Warning: This exercise is limited to a particular structure on the game tree, make sure you understand the underlying ideas so you can solve other ones as well.",
