@@ -6,7 +6,8 @@ var exercise, exNum, payoffs = [], extPayoffs = {}, signProb, inst, rows = 2, co
 const eps = 1e-6;
 
 const unlockLimit = 1; // 3
-const unlockInit = 99; // 0 
+const unlockInit = 0; // 0 
+const unlockOverwrite = 15; // undefined
 
 // INTRO PAGE
 
@@ -84,6 +85,9 @@ function fetchCookies() {
         unlock = unlockInit;
         setCookie('unlock', unlock);
     }
+	if (unlockOverwrite != undefined) {
+		unlock = unlockOverwrite;
+	}
     
     progress = getCookie('progress');
     if (!progress) {
@@ -379,13 +383,13 @@ const descriptions = {
     'WDA': "Find weakly dominated actions in the game below (if such exist). If you're sure there isn't one, move on to a new problem.",
     'NE': "Find a pure-strategy Nash equilibrium in the game below below (if one exists). If you're sure there isn't one, move on to a new problem.",
     'Cou': "Find the Cournot equilibrium in the game below.",
-    'Mix': "Find a mixed-strategy Nash equilibrium in the game below.",
+    'Mix': "Find a Nash equilibrium in the game below.",
 	'SPNE': "Find a pure-strategy subgame-perfect Nash equilibrium in the game below. Remember: a strategy specifies an action at every decision node for the player.",
     'Stack': "Find the Stackelberg equilibrium in the game below.",
-	'Imperf': "Find a mixed-strategy subgame-perfect Nash equilibrium in the game below. Remember: a strategy specifies a distribution over actions at every information set for the player.",
-    'BNE': "Find a mixed-strategy Bayesian Nash equilibrium in the game below. Nature \"draws the matrix\" with the given probability (think of it as the row player's type).",
-    'PBE': "Find a mixed-strategy perfect Bayesian equilibrium in the game below.",
-    'Signal': "Find a mixed-strategy perfect Bayesian equilibrium in the signaling game below.",
+	'Imperf': "Find a subgame-perfect Nash equilibrium in the game below. Remember: a strategy specifies a distribution over actions at every information set for the player.",
+    'BNE': "Find a Bayesian Nash equilibrium in the game below. Nature \"draws the matrix\" with the given probability (think of it as row's type).",
+    'PBE': "Find a perfect Bayesian equilibrium in the game below.",
+    'Signal': "Find a perfect Bayesian equilibrium in the signaling game below.",
 	'Core': "Find a core allocation in the cost-sharing game below (if one exists). If you're sure there isn't one, move on to a new problem.",
 	'Shap': "Find the Shapley value of the cost-sharing game below.",
 };
@@ -1211,7 +1215,7 @@ function evalWDA () {
     else {
         for (let i = 0; i < rows; i++) {
             if (payoffs[i][a][1] < payoffs[i][b][1]) return false;
-            if (payoffs[i][a][0] > payoffs[i][b][0]) diff = true;
+            if (payoffs[i][a][1] > payoffs[i][b][1]) diff = true;
         }
     }
     return diff;
