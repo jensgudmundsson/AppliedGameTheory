@@ -96,7 +96,7 @@ function fetchCookies() {
     if (!trend) {
 		for (let i = 0; i < 12; i++) {
 			for (let j = 0; j < 5; j++) {
-				trend += '-';
+				trend += '0';
 			}
 		}
         setCookie('trend', trend);
@@ -123,9 +123,8 @@ function setIcons () {
 function setTrend () {
 	var items = document.getElementsByClassName('reslist-item');
 	for (let i = 0; i < items.length; i++) {
-		items[i].classList.remove('x0');
-		items[i].classList.remove('x1');
-		if (trend[i] != '-') items[i].classList.add('x' + trend[i]);
+		items[i].classList.remove('right');
+		if (trend[i] == '1') items[i].classList.add('right');
 	}
 }
 
