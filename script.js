@@ -2,12 +2,12 @@
 
 // VARIABLES AND CONSTANTS
 
-var exercise, exNum, payoffs = [], extPayoffs = {}, signProb, inst, rows = 2, cols = 2, demand = {}, costs = [], costType = 'linear', firms = 2, chance = 'No', unlock, progress, streak = 0, armed = true, players = 3, worth = {};
+var exercise, exNum, payoffs = [], extPayoffs = {}, signProb, inst, rows = 2, cols = 2, demand = {}, costs = [], costType = 'linear', firms = 2, chance = 'No', unlock, progress, trend, streak = 0, armed = true, players = 3, worth = {};
 const eps = 1e-6;
 
 const unlockLimit = 1; // 3
 const unlockInit = 0; // 0 
-const unlockOverwrite = undefined; // undefined
+const forceReset = false; // false
 
 // INTRO PAGE
 
@@ -81,18 +81,25 @@ function getCookie(cname) {
 
 function fetchCookies() {
     unlock = +getCookie('unlock');
-    if (!unlock) {
+    if (!unlock || forceReset) {
         unlock = unlockInit;
         setCookie('unlock', unlock);
     }
-	if (unlockOverwrite != undefined) {
-		unlock = unlockOverwrite;
-	}
     
     progress = getCookie('progress');
     if (!progress) {
         progress = '000000000000';
         setCookie('progress', progress);
+    }
+
+	trend = getCookie('trend');
+    if (!trend) {
+		for (let i = 0; i < 12; i++) {
+			for (let j = 0; j < 5; j++) {
+				trend += '-';
+			}
+		}
+        setCookie('trend', trend);
     }
 }
 
@@ -113,9 +120,28 @@ function setIcons () {
     });
 }
 
+function setTrend () {
+	var items = document.getElementsByClassName('reslist-item');
+	for (let i = 0; i < items.length; i++) {
+		items[i].classList.remove('x0');
+		items[i].classList.remove('x1');
+		if (trend[i] != '-') items[i].classList.add('x' + trend[i]);
+	}
+}
+
+for (let i = 0; i < 12; i++) {
+	var t = '';
+	for (let j = 0; j < 5; j++) {
+		t += "<div class='reslist-item'></div>";
+	}
+	$('list' + i).innerHTML = t;
+	$('list' + i).style.top = 45 * i + 7;
+}
+
 window.onload = () => {
     fetchCookies();
     setIcons();
+	setTrend();
 }
 
 // FEEDBACK FUNCTIONS
@@ -262,6 +288,15 @@ function evaluateAnswer() {
 		case 'Shap': 	res = evalShapley(); break;
     }
     
+	if (armed) {
+		var pos = 5 * exNum;
+		var str = trend.substring(0, pos);
+		str += (res) ? '1' : '0';
+		str += trend.substring(pos);
+		str = str.substring(0, pos + 5) + str.substring(pos + 6);
+		trend = str;
+		setCookie('trend', trend);
+	}
     if (armed & res) {
         var t = progress[exNum];
 		if (t != 'A') {
@@ -297,6 +332,7 @@ function evaluateAnswer() {
     setTimeout( () => $('output').classList.remove('vis'), 1500);
     setTimeout( () => $(res).classList.add('hide'), 1700);
     setIcons();
+    setTrend();
 }
 
 // DESCRIPTIONS 
@@ -1206,10 +1242,6 @@ function generateCoalitional () {
 function evalWDA () {
     var sel1 = $('WDA_1');
     var sel2 = $('WDA_2');
-    if (!sel1 || !sel2) {
-		console.log('Incomplete answer');
-        return false;
-    }
     const group = (sel) => sel.options[sel.options.selectedIndex].parentNode.label;
     if (group(sel1) != group(sel2)) {
 		console.log('Inconsistent answer');
@@ -1217,6 +1249,10 @@ function evalWDA () {
     }
     var a = $('WDA_1').value;
     var b = $('WDA_2').value;
+    if (!a || !b) {
+		console.log('Incomplete answer');
+        return false;
+    }
 	var diff = false;
     if (group(sel1) == 'Row') {
         for (let j = 0; j < cols; j++) {
