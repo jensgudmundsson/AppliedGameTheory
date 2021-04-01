@@ -7,7 +7,7 @@ const eps = 1e-6;
 
 const unlockLimit = 1; // 3
 const unlockInit = 0; // 0 
-const unlockOverwrite = 15; // undefined
+const unlockOverwrite = undefined; // undefined
 
 // INTRO PAGE
 
@@ -166,6 +166,12 @@ if (window.matchMedia("(max-width: 700px)").matches) {
 function home () {
     exercise = undefined;
 	updateTexts();
+	
+	var coll = document.getElementsByClassName("collapsible");
+	for (let i = 0; i < coll.length; i++) {
+		coll[i].classList.remove("active");
+		coll[i].nextElementSibling.style.maxHeight = null;
+	}
 }
 
 function updateTexts () {
@@ -274,6 +280,12 @@ function evaluateAnswer() {
         unlock += 1;
         setCookie('unlock', unlock);
         streak = 0;
+		setTimeout( () => $('exerciseType').classList.add('flash'), 1700);
+		setTimeout( () => $('exerciseType').classList.remove('flash'), 2000);
+		setTimeout( () => $('exerciseType').classList.add('flash'), 2300);
+		setTimeout( () => $('exerciseType').classList.remove('flash'), 2600);
+		setTimeout( () => $('exerciseType').classList.add('flash'), 2900);
+		setTimeout( () => $('exerciseType').classList.remove('flash'), 3200);
     }
     armed = false;
 

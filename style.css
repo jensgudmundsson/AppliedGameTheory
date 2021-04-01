@@ -25,6 +25,12 @@ body {
 	text-align: center;
 	cursor: pointer;
 	padding: 18px;
+	transition: color .3s linear;
+}
+
+.menu-item.flash {
+	color: rgba(255,0,0,1);
+	transition: color .3s linear;
 }
 
 @media only screen and (min-width: 769px) { 
