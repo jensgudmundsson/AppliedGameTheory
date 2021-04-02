@@ -2,12 +2,12 @@
 
 // VARIABLES AND CONSTANTS
 
-var exercise, exNum, payoffs = [], extPayoffs = {}, signProb, inst, rows = 2, cols = 2, demand = {}, costs = [], costType = 'linear', firms = 2, chance = 'No', unlock, progress, trend, streak = 0, armed = true, players = 3, worth = {};
+var exercise, exNum, payoffs = [], extPayoffs = {}, signProb, inst, rows = 2, cols = 2, demand = {}, costs = [], costType = 'linear', firms = 2, chance = 'No', version, unlock, progress, trend, streak = 0, armed = true, players = 3, worth = {};
 const eps = 1e-6;
 
+const currentVersion = 1; // 1
 const unlockLimit = 1; // 3
 const unlockInit = 0; // 0 
-const forceReset = false; // false
 
 // INTRO PAGE
 
@@ -80,25 +80,34 @@ function getCookie(cname) {
 }
 
 function fetchCookies() {
+	version = +getCookie('version');
+	if (!version || version < currentVersion) {
+		version = currentVersion;
+        unlock = unlockInit;
+        progress = new Array(12+1).join('0');
+        trend = new Array(5*12+1).join('0');
+
+		setCookie('version', version);
+        setCookie('unlock', unlock);
+        setCookie('progress', progress);
+        setCookie('trend', trend);
+	}
+	
     unlock = +getCookie('unlock');
-    if (!unlock || forceReset) {
+    if (!unlock) {
         unlock = unlockInit;
         setCookie('unlock', unlock);
     }
     
     progress = getCookie('progress');
     if (!progress) {
-        progress = '000000000000';
+        progress = new Array(12+1).join('0');
         setCookie('progress', progress);
     }
 
 	trend = getCookie('trend');
     if (!trend) {
-		for (let i = 0; i < 12; i++) {
-			for (let j = 0; j < 5; j++) {
-				trend += '0';
-			}
-		}
+        trend = new Array(5*12+1).join('0');
         setCookie('trend', trend);
     }
 }
