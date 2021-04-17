@@ -98,6 +98,12 @@ function fetchCookies() {
         unlock = unlockInit;
         setCookie('unlock', unlock);
     }
+	
+    const queryString = window.location.search;
+    const urlParams = new URLSearchParams(queryString);
+    if (urlParams.has('unlock')) {
+	unlock = 15;
+    setCookie('unlock', unlock);
     
     progress = getCookie('progress');
     if (!progress) {
