@@ -7,7 +7,7 @@ const eps = 1e-6;
 
 const currentVersion = 2; // 2 as of Apr 17
 const unlockLimit = 3; // 3
-const unlockInit = 0; // 0 
+const unlockInit = 0; // 0  
 
 // INTRO PAGE
 
@@ -98,12 +98,13 @@ function fetchCookies() {
         unlock = unlockInit;
         setCookie('unlock', unlock);
     }
-	
-    const queryString = window.location.search;
-    const urlParams = new URLSearchParams(queryString);
-    if (urlParams.has('unlock')) {
-	unlock = 15;
-    setCookie('unlock', unlock);
+
+	const queryString = window.location.search;
+	const urlParams = new URLSearchParams(queryString);
+	if (urlParams.has('unlock')) {
+		unlock = 15;
+        setCookie('unlock', unlock);
+	}
     
     progress = getCookie('progress');
     if (!progress) {
@@ -157,6 +158,7 @@ window.onload = () => {
     setIcons();
 	setTrend();
 }
+
 
 // FEEDBACK FUNCTIONS
 
