@@ -5,8 +5,8 @@
 var exercise, exNum, payoffs = [], extPayoffs = {}, signProb, inst, rows = 2, cols = 2, demand = {}, costs = [], costType = 'linear', firms = 2, chance = 'No', version, unlock, progress, trend, streak = 0, armed = true, players = 3, worth = {};
 const eps = 1e-6;
 
-const currentVersion = 1; // 1
-const unlockLimit = 1; // 3
+const currentVersion = 2; // 2 as of Apr 17
+const unlockLimit = 3; // 3
 const unlockInit = 0; // 0 
 
 // INTRO PAGE
