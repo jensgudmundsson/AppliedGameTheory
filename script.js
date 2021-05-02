@@ -7,7 +7,7 @@ const eps = 1e-6;
 
 const currentVersion = 2; // 2 as of Apr 17
 const unlockLimit = 3; // 3
-const unlockInit = 0; // 0  
+const unlockInit = 0; // 0
 
 // INTRO PAGE
 
@@ -445,7 +445,7 @@ const headers = {
 
 const descriptions = {
     'WDA': "Find weakly dominated actions in the game below (if such exist). If you're sure there isn't one, move on to a new problem.",
-    'NE': "Find a pure-strategy Nash equilibrium in the game below below (if one exists). If you're sure there isn't one, move on to a new problem.",
+    'NE': "Find a pure-strategy Nash equilibrium in the game below below (if one exists). Select \"None\" for Row if there is no such equilibrium.",
     'Cou': "Find the Cournot equilibrium in the game below.",
     'Mix': "Find a Nash equilibrium in the game below.",
 	'SPNE': "Find a pure-strategy subgame-perfect Nash equilibrium in the game below. Remember: a strategy specifies an action at every decision node for the player.",
@@ -488,7 +488,7 @@ const answers = {
 		for (let i = 0; i < rows; i++) {
 			str += '<option value="' + i + '">' + (i+1) + '</option>';
 		} 
-		str += "</select> and column plays <select id='NE_col'><option selected disabled></option>";
+		str += "<option value='none'>None</option></select> and column plays <select id='NE_col'><option selected disabled></option>";
 		for (let j = 0; j < cols; j++) {
 			str += '<option value="' + j + '">' + letter(j) + '</option>';
 		} 
@@ -1288,6 +1288,38 @@ function evalWDA () {
 function evalNE() {
     var a = $('NE_row').value;
     var b = $('NE_col').value;
+	if (a == 'none') {
+		let evaluation = true;
+		for (let i = 0; i < rows; i++) {
+			let br = [];
+			let max = -1;
+			for (let j = 0; j < cols; j++) {
+				if (payoffs[i][j][1] > max) {
+					max = payoffs[i][j][1];
+					br = [j];
+				}
+				else if (payoffs[i][j][1] == max) {
+					br.push(j);
+				}
+			}
+			br.forEach(j => {
+				let curr = payoffs[i][j][0];
+				let dev = false;
+				for (let k = 0; k < rows; k++) {
+					if (payoffs[k][j][0] > curr) {
+						dev = true; // no equilibrium at i,j
+					}
+				}
+				if (dev == false) { // no deviation, eq!
+					evaluation = false;	
+				}
+			});
+		}
+		return evaluation;
+	}
+
+	// below: a != 'none'
+
     if (!a || !b) {
 		console.log('Incomplete answer');
         return false;
