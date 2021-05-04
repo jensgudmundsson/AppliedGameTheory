@@ -652,7 +652,7 @@ function generateCournot () {
     }
     inst += '. The inverse demand function is \\(p(q) = ' + demand['a'] + ' - ';
     if (demand['b'] > 1) inst += demand['b'];
-    inst += 'q\\).';
+    inst += 'q\\), where \\(q\\) is the total market quantity.';
 }
 
 // SPNE games
