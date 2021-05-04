@@ -60,7 +60,8 @@ const powerset = () => {
 // PROGESS TRACKING 
 
 function setCookie(cname, cvalue) {
-    document.cookie = cname + "=" + cvalue + ";" + ";path=/";
+    // document.cookie = cname + "=" + cvalue + ";" + ";path=/";
+	document.cookie = cname + "=" + cvalue + ";expires=Fri, 31 Dec 2021 23:59:59 GMT" + ";path=/"
 }
 
 function getCookie(cname) {
