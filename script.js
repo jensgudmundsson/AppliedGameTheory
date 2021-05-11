@@ -1371,6 +1371,10 @@ function evalMix() {
     var pr = [], pc = [];
     for (let i = 0; i < rows; i++) {
         pr[i] = textInput('pr' + i);
+		if (pr[i] < 0) {
+			console.log("Probabilities can't be negative");
+			return false;
+		}
     }
     if (!isClose(sum(pr), 1)) {
 		console.log("Row's probabilities don't add up to one");
@@ -1378,6 +1382,10 @@ function evalMix() {
 	}
     for (let j = 0; j < cols; j++) {
         pc[j] = textInput('pc' + j);
+		if (pc[j] < 0) {
+			console.log("Probabilities can't be negative");
+			return false;
+		}
     }
     if (!isClose(sum(pc), 1)) {
 		console.log("Column's probabilities don't add up to one");
@@ -1652,6 +1660,10 @@ function evalBNE () {
 	var pi = fracToDec(signProb);
 	var u = {}, dev;
 
+	if (p1 < 0 || p2 < 0 || p3 < 0 || p4 < 0 || pA < 0 || pB < 0) {
+		console.log("Probabilities can't be negative");
+		return false;
+	}
 	if (!isClose(p1 + p2, 1)) {
 		console.log("Row's left-matrix probabilities don't add up to one");
 		return false;
@@ -1756,12 +1768,20 @@ function evalPBE() {
 	var p = textInput('PBE_p');
 	var dev;
 
+	if (pA < 0 || pB < 0) {
+		console.log("Probabilities can't be negative");
+		return false;
+	}
 	if (!isClose(pA + pB, 1)) {
 		console.log("Player 2's probabilities don't add up to one");
 		return false;
 	}
 
 	if (chance === 'No') {
+		if (p1 < 0 || p2 < 0 || pOut < 0) {
+			console.log("Probabilities can't be negative");
+			return false;
+		}
 		if (!isClose(p1 + p2 + pOut, 1)) {
 			console.log("Player 1's probabilities don't add up to one");
 			return false;
@@ -1830,6 +1850,10 @@ function evalPBE() {
 		}
 	}
 	else {
+		if (pIn < 0 || pOut < 0) {
+			console.log("Probabilities can't be negative");
+			return false;
+		}
 		if (!isClose(pIn + pOut, 1)) {
 			console.log("Player 1's probabilities don't add up to one");
 			return false;
@@ -1896,6 +1920,10 @@ function evalSignal () {
 	var pi = fracToDec(signProb);
 	var u, dev;
 
+	if (p1 < 0 || p2 < 0 || p3 < 0 || p4 < 0 || pA < 0 || pB < 0 || pC < 0 || pD < 0 || p < 0 || q < 0) {
+		console.log("Probabilities can't be negative");
+		return false;
+	}
 	if (!isClose(p1 + p2, 1)) {
 		console.log("Player 1's probabilities at U don't add up to one");
 		return false;
